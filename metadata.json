@@ -1,0 +1,6 @@
+{
+  "name": "منصة الأستاذة تبارك الأزيرجاوي",
+  "description": "منصة تعليمية عربية متكاملة للمرحلة المتوسطة والإعدادية المهنية والكلية، مع بث مباشر تفاعلي وحماية متقدمة للمحتوى.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
