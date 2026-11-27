@@ -110,19 +110,19 @@ export const PrivacyGuard: React.FC<PrivacyGuardProps> = ({
         <div
           role="alertdialog"
           aria-modal="true"
-          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black px-6 text-center text-white"
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#090712]/98 backdrop-blur-xl px-6 text-center text-white"
         >
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-400">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 shadow-[0_0_24px_-4px_rgba(168,85,247,0.7)]">
             <ShieldAlert className="h-7 w-7" />
           </div>
-          <h3 className="text-lg font-bold text-white">حماية المحتوى مفعّلة</h3>
+          <h3 className="text-lg font-black text-white">حماية المحتوى مفعّلة</h3>
           <p className="mt-2 max-w-md text-sm text-slate-300 leading-relaxed">
-            يُمنع التقاط الشاشة أو تسجيل الفيديو لحفظ حقوق الأستاذة تبارك الأزيرجاوي. تم تعتيم العرض تلقائياً لحماية المحتوى التعليمي.
+            يُمنع التقاط الشاشة أو تسجيل الفيديو لحفظ حقوق الأستاذة تبارك الزيرجاوي. تم تعتيم العرض تلقائياً لحماية المحتوى التعليمي.
           </p>
           <button
             type="button"
             onClick={() => setShieldTriggered(false)}
-            className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-slate-950 transition-colors hover:bg-amber-400"
+            className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 py-2.5 text-sm font-black text-white shadow-[0_8px_24px_-6px_rgba(147,51,234,0.75)] transition-all hover:brightness-110 cursor-pointer"
           >
             <Eye className="h-4 w-4" />
             <span>العودة إلى المشاهدة</span>

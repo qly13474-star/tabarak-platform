@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { usePlatform } from '../../context/PlatformContext';
 import { TrackId } from '../../types';
-import { getAudienceLabel } from '../../services/supabase';
+import { getAudienceLabel } from '../../services/platformData';
 import { computeLiveQuizLeaderboard, DEMO_LIVE_QUIZ_QUESTIONS } from '../../services/liveQuizChat';
 import { formatDurationMMSS } from '../../utils/quizRanking';
 import { LiveQuizLeaderboardCard } from '../common/LiveQuizLeaderboardCard';
@@ -184,9 +184,9 @@ export const AdminLiveQuizChat: React.FC = () => {
     return (
       <div className="space-y-5">
         {/* Instant Demo Preview Banner */}
-        <div className="rounded-2xl bg-[#0F172A] text-white p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#D4AF37]/40">
+        <div className="rounded-2xl bg-[#110D1F] text-white p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-purple-400/40">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#D4AF37]">
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-300">
               <Zap className="h-4 w-4" />
               <span>تجربة فورية لغرفة محادثة الكوزات المباشرة</span>
             </div>
@@ -200,7 +200,7 @@ export const AdminLiveQuizChat: React.FC = () => {
           <button
             type="button"
             onClick={startDemoLiveQuizPreview}
-            className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-5 text-xs sm:text-sm font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap shrink-0"
+            className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 text-xs sm:text-sm font-extrabold text-white hover:brightness-105 whitespace-nowrap shrink-0"
           >
             <Sparkles className="h-4 w-4" />
             <span>معاينة محادثة كوز مباشر</span>
@@ -210,15 +210,15 @@ export const AdminLiveQuizChat: React.FC = () => {
         {/* Configure & Start Session Form */}
         <form
           onSubmit={handleStartSession}
-          className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-5"
+          className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-5"
         >
-          <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
-            <MessageSquare className="h-5 w-5 text-[#B48A1E]" />
+          <div className="flex items-center gap-2.5 border-b border-purple-500/15 pb-4">
+            <MessageSquare className="h-5 w-5 text-purple-300" />
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">
+              <h2 className="text-base font-extrabold text-white">
                 بدء جلسة محادثة كوزات مباشرة جديدة
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 حددي الفئة المستهدفة ومدة الجلسة والوقت الافتراضي لكل سؤال، ثم اضغطي «بدء المحادثة».
               </p>
             </div>
@@ -226,7 +226,7 @@ export const AdminLiveQuizChat: React.FC = () => {
 
           {/* Dynamic Target Stage (100% from AdminStages) */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-200">
               1. المرحلة / المسار الدراسي المستهدف
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -245,14 +245,14 @@ export const AdminLiveQuizChat: React.FC = () => {
                     }}
                     className={`min-h-[48px] rounded-xl border px-3.5 py-2 text-right text-xs font-extrabold transition-colors ${
                       selected
-                        ? 'border-[#0F172A] bg-[#0F172A] text-[#D4AF37]'
-                        : 'border-slate-200 bg-slate-50 text-slate-800 hover:border-slate-400'
+                        ? 'border-purple-400 bg-[#110D1F] text-purple-300'
+                        : 'border-purple-500/20 bg-white/[0.04] text-slate-100 hover:border-purple-400/50'
                     }`}
                   >
                     <span className="block">{trk.label}</span>
                     <span
                       className={`block mt-0.5 text-[10px] font-medium truncate ${
-                        selected ? 'text-slate-300' : 'text-slate-500'
+                        selected ? 'text-slate-300' : 'text-slate-400'
                       }`}
                     >
                       {trk.subStages.join(' · ')}
@@ -266,13 +266,13 @@ export const AdminLiveQuizChat: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Dynamic Class / SubStage */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 الصف / المرحلة الفرعية
               </label>
               <select
                 value={subStage}
                 onChange={(e) => setSubStage(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3.5 text-sm font-semibold"
               >
                 <option value="جميع الصفوف">جميع صفوف هذه المرحلة</option>
                 {(selectedTrackObj?.subStages ?? []).map((cls) => (
@@ -286,7 +286,7 @@ export const AdminLiveQuizChat: React.FC = () => {
             {/* Dynamic Branch / Department if stage has specializations */}
             {availableSpecs.length > 0 && (
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-slate-200">
                   {selectedTrackObj?.specializationLabel || 'الفرع / القسم'}
                 </label>
                 <select
@@ -295,7 +295,7 @@ export const AdminLiveQuizChat: React.FC = () => {
                     setBranch(e.target.value);
                     setCourseId('');
                   }}
-                  className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold"
+                  className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3.5 text-sm font-semibold"
                 >
                   <option value="الجميع">جميع الفروع والأقسام</option>
                   {availableSpecs.map((br) => (
@@ -309,7 +309,7 @@ export const AdminLiveQuizChat: React.FC = () => {
 
             {/* Dynamic Subject (from AdminStages + manual entry) */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 المادة الدراسية (اختياري)
               </label>
               <input
@@ -318,7 +318,7 @@ export const AdminLiveQuizChat: React.FC = () => {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="اختاري مادة من القائمة أو اكتبيها يدوياً..."
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3.5 text-sm font-semibold focus:border-purple-400 focus:outline-none"
               />
               <datalist id="live-quiz-subjects-list">
                 {availableSubjects.map((s) => (
@@ -328,13 +328,13 @@ export const AdminLiveQuizChat: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 الدورة المرتبطة (اختياري)
               </label>
               <select
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-semibold"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3.5 text-sm font-semibold"
               >
                 <option value="">كوز عام للمرحلة المستهدفة</option>
                 {matchingCourses.map((c) => (
@@ -346,7 +346,7 @@ export const AdminLiveQuizChat: React.FC = () => {
             </div>
 
             <div className="md:col-span-2 space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 عنوان جلسة محادثة الكوزات (اختياري)
               </label>
               <input
@@ -354,13 +354,13 @@ export const AdminLiveQuizChat: React.FC = () => {
                 value={sessionTitle}
                 onChange={(e) => setSessionTitle(e.target.value)}
                 placeholder={`مثال: كوز مباشر سريع — ${selectedTrackObj?.label || ''}`}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-4 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-4 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             {/* Session Total Duration (Minutes) */}
             <div className="space-y-2">
-              <span className="block text-xs font-bold text-slate-700">
+              <span className="block text-xs font-bold text-slate-200">
                 2. مدة الجلسة الكلية (بالدقائق)
               </span>
               <div className="flex flex-wrap items-center gap-2">
@@ -371,8 +371,8 @@ export const AdminLiveQuizChat: React.FC = () => {
                     onClick={() => setDurationMinutes(mins)}
                     className={`min-h-[40px] rounded-xl border px-3.5 text-xs font-bold tabular-nums ${
                       durationMinutes === mins
-                        ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400'
+                        ? 'border-purple-400 bg-[#110D1F] text-white'
+                        : 'border-purple-500/20 bg-white/[0.04] text-slate-200 hover:border-purple-400/50'
                     }`}
                   >
                     {mins} دقيقة
@@ -383,7 +383,7 @@ export const AdminLiveQuizChat: React.FC = () => {
 
             {/* Default Question Answer Time (Seconds) */}
             <div className="space-y-2">
-              <span className="block text-xs font-bold text-slate-700">
+              <span className="block text-xs font-bold text-slate-200">
                 3. مدة الإجابة الافتراضية لكل سؤال (بالثواني)
               </span>
               <div className="flex flex-wrap items-center gap-2">
@@ -394,29 +394,29 @@ export const AdminLiveQuizChat: React.FC = () => {
                     onClick={() => setDefaultQuestionSeconds(secs)}
                     className={`min-h-[40px] rounded-xl border px-3.5 text-xs font-bold tabular-nums ${
                       defaultQuestionSeconds === secs
-                        ? 'border-[#0F172A] bg-[#0F172A] text-[#D4AF37]'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400'
+                        ? 'border-purple-400 bg-[#110D1F] text-purple-300'
+                        : 'border-purple-500/20 bg-white/[0.04] text-slate-200 hover:border-purple-400/50'
                     }`}
                   >
                     {secs} ثانية
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400">
                 يمكنكِ تعديل عدد الثواني لأي سؤال على حدة قبل إرساله داخل المحادثة.
               </p>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+          <div className="pt-3 border-t border-purple-500/15 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-slate-400">
               فور الضغط على «بدء المحادثة» يظهر تنبيه فوري للطلاب للانضمام مع عداد المتصلين.
             </p>
             <button
               type="submit"
-              className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-7 text-sm font-extrabold text-white hover:bg-slate-800 whitespace-nowrap"
+              className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-7 text-sm font-extrabold text-white hover:brightness-110 whitespace-nowrap"
             >
-              <Play className="h-4 w-4 text-[#D4AF37]" />
+              <Play className="h-4 w-4 text-purple-300" />
               <span>بدء المحادثة الآن</span>
             </button>
           </div>
@@ -429,7 +429,7 @@ export const AdminLiveQuizChat: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Top Room Control Bar */}
-      <div className="rounded-2xl bg-[#0F172A] text-white p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-slate-800">
+      <div className="rounded-2xl bg-[#110D1F] text-white p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-purple-500/20">
         <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
             {liveQuizRoom.status === 'active' ? (
@@ -440,8 +440,8 @@ export const AdminLiveQuizChat: React.FC = () => {
             ) : (
               <span className="text-emerald-400">انتهت الجلسة · تم إعلان النتائج</span>
             )}
-            <span className="text-slate-600">·</span>
-            <span className="text-[#D4AF37]">
+            <span className="text-slate-300">·</span>
+            <span className="text-purple-300">
               {getAudienceLabel(liveQuizRoom.audience, db.tracks)}
               {liveQuizRoom.subStage ? ` · ${liveQuizRoom.subStage}` : ''}
               {liveQuizRoom.branch ? ` (${liveQuizRoom.branch})` : ''}
@@ -455,8 +455,8 @@ export const AdminLiveQuizChat: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
           {/* Session Countdown */}
-          <div className="rounded-xl bg-slate-800/90 border border-white/10 px-3.5 py-2 flex items-center gap-2 text-xs">
-            <Clock className="h-4 w-4 text-[#D4AF37]" />
+          <div className="rounded-xl bg-slate-800/90 border border-purple-500/20 px-3.5 py-2 flex items-center gap-2 text-xs">
+            <Clock className="h-4 w-4 text-purple-300" />
             <div>
               <span className="block text-[10px] text-slate-400">المتبقي للجلسة</span>
               <strong className="font-mono text-sm font-extrabold text-white tabular-nums" dir="ltr">
@@ -466,7 +466,7 @@ export const AdminLiveQuizChat: React.FC = () => {
           </div>
 
           {/* Connected Students Counter */}
-          <div className="rounded-xl bg-slate-800/90 border border-white/10 px-3.5 py-2 flex items-center gap-2 text-xs">
+          <div className="rounded-xl bg-slate-800/90 border border-purple-500/20 px-3.5 py-2 flex items-center gap-2 text-xs">
             <Users className="h-4 w-4 text-emerald-400" />
             <div>
               <span className="block text-[10px] text-slate-400">الطلاب المتصلون</span>
@@ -490,7 +490,7 @@ export const AdminLiveQuizChat: React.FC = () => {
             <button
               type="button"
               onClick={resetLiveQuizRoom}
-              className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-5 text-xs sm:text-sm font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap"
+              className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 text-xs sm:text-sm font-extrabold text-white hover:brightness-105 whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
               <span>بدء جلسة كوزات جديدة</span>
@@ -504,33 +504,33 @@ export const AdminLiveQuizChat: React.FC = () => {
         {/* Chat Stream & Question Composer (2 columns) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Chat Messages & Live Question Cards Stream */}
-          <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col">
-            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between text-xs">
-              <span className="font-extrabold text-slate-800">
+          <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden flex flex-col">
+            <div className="px-5 py-3.5 border-b border-purple-500/15 bg-white/[0.04] flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-100">
                 مجريات غرفة محادثة الكوزات ({liveQuizRoom.questions.length} سؤال مرسل)
               </span>
-              <span className="text-slate-500">
+              <span className="text-slate-400">
                 المدة الافتراضية: {liveQuizRoom.defaultQuestionSeconds} ثانية/سؤال
               </span>
             </div>
 
-            <div className="p-4 sm:p-5 space-y-4 max-h-[520px] overflow-y-auto bg-slate-50/50">
+            <div className="p-4 sm:p-5 space-y-4 max-h-[520px] overflow-y-auto bg-white/[0.035]">
               {liveQuizRoom.systemMessages.map((msg) => (
                 <div
                   key={msg.id}
-                  className="mx-auto max-w-xl rounded-xl bg-slate-200/70 px-4 py-2 text-center text-xs font-semibold text-slate-700"
+                  className="mx-auto max-w-xl rounded-xl bg-slate-200/70 px-4 py-2 text-center text-xs font-semibold text-slate-200"
                 >
                   <span>{msg.text}</span>
-                  <span className="mr-2 font-mono text-[10px] text-slate-500">{msg.timestamp}</span>
+                  <span className="mr-2 font-mono text-[10px] text-slate-400">{msg.timestamp}</span>
                 </div>
               ))}
 
               {liveQuizRoom.questions.length === 0 && liveQuizRoom.status === 'active' && (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center space-y-2">
-                  <p className="text-sm font-extrabold text-slate-800">
+                <div className="rounded-2xl border border-dashed border-purple-500/25 bg-white/[0.045] backdrop-blur-xl p-8 text-center space-y-2">
+                  <p className="text-sm font-extrabold text-slate-100">
                     الغرفة مفتوحة والطلاب بانتظار السؤال الأول!
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     اكتبي سؤالك بالأسفل أو استخدمي «تعبئة سؤال جاهز» ثم اضغطي «إرسال السؤال للطلاب».
                   </p>
                 </div>
@@ -550,19 +550,19 @@ export const AdminLiveQuizChat: React.FC = () => {
                 return (
                   <article
                     key={q.id}
-                    className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 space-y-3 shadow-xs"
+                    className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-4 sm:p-5 space-y-3 shadow-xs"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <span className="font-extrabold text-[#0F172A]">
+                      <span className="font-extrabold text-white">
                         السؤال #{q.order}
                       </span>
                       <span
                         className={`font-mono font-extrabold tabular-nums ${
                           isClosed
-                            ? 'text-slate-500'
+                            ? 'text-slate-400'
                             : remainingSec <= 5
-                              ? 'text-red-600'
-                              : 'text-[#B48A1E]'
+                              ? 'text-rose-400'
+                              : 'text-purple-300'
                         }`}
                       >
                         {isClosed ? 'أُغلق وقت الإجابة' : `متبقي ${remainingSec} ثانية`}
@@ -570,20 +570,20 @@ export const AdminLiveQuizChat: React.FC = () => {
                     </div>
 
                     {/* Rapid Countdown Bar */}
-                    <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
                       <div
                         className={`h-full transition-all duration-200 ${
                           isClosed
                             ? 'bg-slate-300'
                             : remainingSec <= 5
                               ? 'bg-red-600'
-                              : 'bg-gradient-to-l from-[#D4AF37] to-[#F59E0B]'
+                              : 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600'
                         }`}
                         style={{ width: `${isClosed ? 0 : progressPct}%` }}
                       />
                     </div>
 
-                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                    <h3 className="text-sm sm:text-base font-extrabold text-white leading-snug">
                       {q.question}
                     </h3>
 
@@ -598,8 +598,8 @@ export const AdminLiveQuizChat: React.FC = () => {
                             key={idx}
                             className={`rounded-xl border px-3 py-2.5 flex items-center justify-between gap-2 text-xs ${
                               isCorrect
-                                ? 'border-emerald-300 bg-emerald-50/70 text-emerald-950 font-bold'
-                                : 'border-slate-200 bg-slate-50 text-slate-700'
+                                ? 'border-emerald-300 bg-emerald-500/12 text-emerald-200 font-bold'
+                                : 'border-purple-500/20 bg-white/[0.04] text-slate-200'
                             }`}
                           >
                             <span className="flex items-center gap-2 min-w-0">
@@ -607,14 +607,14 @@ export const AdminLiveQuizChat: React.FC = () => {
                                 className={`flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-extrabold shrink-0 ${
                                   isCorrect
                                     ? 'bg-emerald-600 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600'
+                                    : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-300'
                                 }`}
                               >
                                 {OPTION_LETTERS[idx]}
                               </span>
                               <span className="truncate">{opt}</span>
                             </span>
-                            <span className="font-mono text-[11px] text-slate-500 tabular-nums shrink-0">
+                            <span className="font-mono text-[11px] text-slate-400 tabular-nums shrink-0">
                               {chosenCount} إجابة
                             </span>
                           </div>
@@ -622,15 +622,15 @@ export const AdminLiveQuizChat: React.FC = () => {
                       })}
                     </div>
 
-                    <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 tabular-nums">
+                    <div className="pt-2 border-t border-purple-500/15 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 tabular-nums">
                       <span>
                         أجاب حتى الآن:{' '}
-                        <strong className="text-slate-900 font-mono">
+                        <strong className="text-white font-mono">
                           {answersList.length} / {liveQuizRoom.participants.length}
                         </strong>{' '}
                         طالب
                       </span>
-                      <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
+                      <span className="inline-flex items-center gap-1 text-emerald-300 font-bold">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span>{correctAnswersCount} إجابة صحيحة</span>
                       </span>
@@ -655,18 +655,18 @@ export const AdminLiveQuizChat: React.FC = () => {
           {liveQuizRoom.status === 'active' && (
             <form
               onSubmit={handleSendQuestion}
-              className="rounded-2xl bg-white border border-slate-200 p-5 space-y-4"
+              className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 space-y-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-extrabold text-slate-900">
+                <h3 className="text-sm font-extrabold text-white">
                   إرسال سؤال مباشر جديد (السؤال #{liveQuizRoom.questions.length + 1})
                 </h3>
                 <button
                   type="button"
                   onClick={handleFillPresetQuestion}
-                  className="min-h-[36px] inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3 text-xs font-extrabold text-slate-900 hover:bg-amber-100"
+                  className="min-h-[36px] inline-flex items-center gap-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 px-3 text-xs font-extrabold text-white hover:bg-amber-500/25"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-[#B48A1E]" />
+                  <Sparkles className="h-3.5 w-3.5 text-purple-300" />
                   <span>تعبئة سؤال وزاري جاهز</span>
                 </button>
               </div>
@@ -677,21 +677,21 @@ export const AdminLiveQuizChat: React.FC = () => {
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
                   placeholder="اكتبي نص السؤال السريع هنا..."
-                  className="w-full min-h-[46px] rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:border-[#0F172A] focus:outline-none"
+                  className="w-full min-h-[46px] rounded-xl border border-purple-500/25 px-4 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none"
                 />
               </div>
 
               {/* 2 to 4 Options */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700">
+                  <span className="font-bold text-slate-200">
                     خيارات الإجابة ({options.length} من 4) — حددي الجواب الصحيح (يبقى سرياً ومخفياً تماماً عند الطلاب حتى إنهاء الجلسة)
                   </span>
                   {options.length < 4 && (
                     <button
                       type="button"
                       onClick={handleAddOption}
-                      className="inline-flex items-center gap-1 font-bold text-[#B48A1E] hover:underline"
+                      className="inline-flex items-center gap-1 font-bold text-purple-300 hover:underline"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>إضافة خيار</span>
@@ -707,8 +707,8 @@ export const AdminLiveQuizChat: React.FC = () => {
                         key={idx}
                         className={`flex items-center gap-2 rounded-xl border p-2 transition-colors ${
                           isCorrect
-                            ? 'border-emerald-500 bg-emerald-50/60'
-                            : 'border-slate-200 bg-slate-50'
+                            ? 'border-emerald-500 bg-emerald-500/12'
+                            : 'border-purple-500/20 bg-white/[0.04]'
                         }`}
                       >
                         <button
@@ -718,7 +718,7 @@ export const AdminLiveQuizChat: React.FC = () => {
                           className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-extrabold shrink-0 ${
                             isCorrect
                               ? 'bg-emerald-600 text-white'
-                              : 'bg-white border border-slate-300 text-slate-700 hover:border-slate-900'
+                              : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/25 text-slate-200 hover:border-slate-900'
                           }`}
                         >
                           {OPTION_LETTERS[idx]}
@@ -732,7 +732,7 @@ export const AdminLiveQuizChat: React.FC = () => {
                             )
                           }
                           placeholder={`الخيار ${idx + 1}`}
-                          className="flex-1 min-h-[36px] bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                          className="flex-1 min-h-[36px] bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none"
                         />
                         {options.length > 2 && (
                           <button
@@ -751,9 +751,9 @@ export const AdminLiveQuizChat: React.FC = () => {
               </div>
 
               {/* Per-Question Seconds Override & Send Button */}
-              <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="pt-2 border-t border-purple-500/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="font-bold text-slate-700">مدة هذا السؤال:</span>
+                  <span className="font-bold text-slate-200">مدة هذا السؤال:</span>
                   {[10, 15, 20, 30].map((sec) => (
                     <button
                       key={sec}
@@ -761,8 +761,8 @@ export const AdminLiveQuizChat: React.FC = () => {
                       onClick={() => setQuestionSeconds(sec)}
                       className={`min-h-[36px] rounded-lg border px-2.5 font-mono font-bold tabular-nums ${
                         questionSeconds === sec
-                          ? 'border-[#0F172A] bg-[#0F172A] text-[#D4AF37]'
-                          : 'border-slate-200 bg-slate-50 text-slate-700'
+                          ? 'border-purple-400 bg-[#110D1F] text-purple-300'
+                          : 'border-purple-500/20 bg-white/[0.04] text-slate-200'
                       }`}
                     >
                       {sec}ث
@@ -775,13 +775,13 @@ export const AdminLiveQuizChat: React.FC = () => {
                     value={questionSeconds}
                     onChange={(e) => setQuestionSeconds(Math.max(5, Number(e.target.value)))}
                     aria-label="ثواني السؤال"
-                    className="w-16 min-h-[36px] rounded-lg border border-slate-300 px-2 text-center font-mono text-xs font-bold tabular-nums"
+                    className="w-16 min-h-[36px] rounded-lg border border-purple-500/25 px-2 text-center font-mono text-xs font-bold tabular-nums"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-6 text-sm font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap shrink-0"
+                  className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-6 text-sm font-extrabold text-white hover:brightness-105 whitespace-nowrap shrink-0"
                 >
                   <Send className="h-4 w-4" />
                   <span>إرسال السؤال للطلاب</span>
@@ -789,7 +789,7 @@ export const AdminLiveQuizChat: React.FC = () => {
               </div>
 
               {composerError && (
-                <p className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2">
+                <p className="text-xs font-bold text-rose-300 bg-rose-500/15 border border-rose-400/35 rounded-xl px-3.5 py-2">
                   {composerError}
                 </p>
               )}
@@ -798,35 +798,35 @@ export const AdminLiveQuizChat: React.FC = () => {
         </div>
 
         {/* Side Column: Connected Students & Live Standings */}
-        <aside className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-900">
+        <aside className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-purple-500/15 bg-white/[0.04] flex items-center justify-between">
+            <span className="text-xs font-extrabold text-white">
               الطلاب المتصلون والترتيب المباشر
             </span>
-            <span className="font-mono text-xs font-bold text-emerald-700 tabular-nums">
+            <span className="font-mono text-xs font-bold text-emerald-300 tabular-nums">
               {liveQuizRoom.participants.length} متصل
             </span>
           </div>
 
-          <div className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto">
+          <div className="divide-y divide-purple-500/15 max-h-[520px] overflow-y-auto">
             {liveStandings.map((entry) => (
               <div
                 key={entry.studentId}
                 className="px-4 py-3 flex items-center justify-between gap-2 text-xs"
               >
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-900 truncate">
-                    <span className="text-[#B48A1E] ml-1.5">
+                  <p className="font-bold text-white truncate">
+                    <span className="text-purple-300 ml-1.5">
                       #{entry.rank}
                       {entry.medal ? ` ${entry.medal}` : ''}
                     </span>
                     {entry.studentName}
                   </p>
-                  <p className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                  <p className="text-[11px] text-slate-400 font-mono tabular-nums mt-0.5">
                     {entry.correctCount}/{entry.totalQuestions} صحيحة
                   </p>
                 </div>
-                <span className="font-mono text-xs font-extrabold text-[#0F172A] tabular-nums shrink-0">
+                <span className="font-mono text-xs font-extrabold text-white tabular-nums shrink-0">
                   {entry.percentage}%
                 </span>
               </div>

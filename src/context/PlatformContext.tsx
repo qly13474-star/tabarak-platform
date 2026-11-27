@@ -48,7 +48,7 @@ import {
   PlatformDatabase,
   resetDatabase,
   saveDatabase,
-} from '../services/supabase';
+} from '../services/platformData';
 import { computeNextMonthDueDate } from '../utils/subscription';
 import { getDeliveryFeeForGovernorate } from '../utils/store';
 import {
@@ -79,21 +79,41 @@ import {
   isSuperAdminUser,
 } from '../utils/adminPermissions';
 import {
-  deleteCourseFromSupabase,
-  deleteUserFromSupabase,
-  fetchPlatformSnapshotFromSupabase,
-  isSupabaseLiveConfigured,
-  registerStudentInSupabase,
+  clearDeviceLockInFirestore,
+  deleteActivationCodeFromFirestore,
+  deleteAssignmentFromFirestore,
+  deleteComplaintFromFirestore,
+  deleteCourseFromFirestore,
+  deleteInquiryFromFirestore,
+  deleteStoreItemFromFirestore,
+  deleteStoreOrderFromFirestore,
+  deleteTrackFromFirestore,
+  deleteUserFromFirestore,
+  deleteWeeklySlotFromFirestore,
+  fetchPlatformSnapshotFromFirestore,
+  isFirebaseLiveConfigured,
+  registerStudentInFirebase,
   signInSuperAdminViaServer,
   signInWithPhonePassword,
-  signOutFromSupabase,
-  syncAttendanceToSupabase,
-  syncCourseToSupabase,
-  syncStoreOrderToSupabase,
-  syncUserProfileToSupabase,
-  updateStoreOrderStatusInSupabase,
+  signOutFromFirebase,
+  subscribeToFirebaseAuth,
+  subscribeToPlatformRealtime,
+  syncActivationCodeToFirestore,
+  syncAssignmentToFirestore,
+  syncAttendanceToFirestore,
+  syncComplaintToFirestore,
+  syncCourseToFirestore,
+  syncInquiryToFirestore,
+  syncLiveQuizRoomToFirestore,
+  syncStoreItemToFirestore,
+  syncStoreOrderToFirestore,
+  syncSupportWhatsappNumberToFirestore,
+  syncTrackToFirestore,
+  syncUserProfileToFirestore,
+  syncWeeklySlotToFirestore,
+  updateStoreOrderStatusInFirestore,
   verifySuperAdminPinOnServer,
-} from '../lib/supabase';
+} from '../lib/firebase';
 
 export interface DeviceLockViolation {
   studentId: string;
@@ -126,9 +146,9 @@ interface PlatformContextValue {
   currentUser: UserProfile | null;
   activeAppMode: ActiveAppMode;
   isPreviewMode: boolean;
-  isSupabaseLive: boolean;
-  supabaseAccessToken: string | null;
-  refreshFromSupabase: () => Promise<void>;
+  isFirebaseLive: boolean;
+  authAccessToken: string | null;
+  refreshFromFirestore: () => Promise<void>;
   currentDeviceId: string;
   deviceLockViolation: DeviceLockViolation | null;
   clearDeviceLockViolation: () => void;
@@ -220,6 +240,17 @@ interface PlatformContextValue {
 
   toggleStudentActive: (studentId: string) => void;
   resetStudentDevice: (studentId: string) => void;
+  updateStudentProfile: (
+    studentId: string,
+    updates: {
+      fullName?: string;
+      phone?: string;
+      track?: TrackId;
+      subStage?: string;
+      branch?: string;
+      department?: string;
+    }
+  ) => { success: boolean; error?: string };
   deleteStudent: (studentId: string) => void;
 
   addNewCourse: (input: {
@@ -266,6 +297,12 @@ interface PlatformContextValue {
     courseId: string,
     input: { title: string; fileUrl: string; pageCount: number }
   ) => void;
+  updatePdfInCourse: (
+    courseId: string,
+    noteId: string,
+    updates: { title?: string; fileUrl?: string; pageCount?: number }
+  ) => void;
+  deletePdfFromCourse: (courseId: string, noteId: string) => void;
   addQuizToCourse: (
     courseId: string,
     input: {
@@ -274,6 +311,15 @@ interface PlatformContextValue {
       questions: Omit<QuizQuestion, 'id'>[];
     }
   ) => Quiz;
+  updateQuizInCourse: (
+    courseId: string,
+    quizId: string,
+    updates: {
+      title?: string;
+      timeLimitMinutes?: number;
+      questions?: Omit<QuizQuestion, 'id'>[];
+    }
+  ) => void;
   deleteQuizFromCourse: (courseId: string, quizId: string) => void;
 
   createAssignment: (input: {
@@ -398,6 +444,10 @@ interface PlatformContextValue {
     quantity: number;
   }) => StoreOrder | null;
   updateStoreOrderStatus: (orderId: string, status: StoreOrderStatus) => void;
+  deleteStoreOrder: (orderId: string) => void;
+
+  // Platform Settings (Dynamic WhatsApp Support Number)
+  updateSupportWhatsappNumber: (phone: string) => Promise<{ success: boolean; error?: string }>;
 
   // Teacher CV, Complaints & Inquiries Actions
   updateTeacherCV: (cv: Omit<TeacherCV, 'updatedAt'>) => void;
@@ -435,15 +485,38 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (typeof window === 'undefined') return null;
     return window.localStorage.getItem(SESSION_USER_KEY);
   });
-  // Keep Supabase JWT strictly in JS memory (never written to localStorage)
-  const [supabaseAccessToken, setSupabaseAccessToken] = useState<string | null>(null);
+  // Keep Firebase ID token / Admin token strictly in JS memory (never written to localStorage)
+  const [authAccessToken, setAuthAccessToken] = useState<string | null>(null);
+  const [firebaseAuthUid, setFirebaseAuthUid] = useState<string | null>(null);
   const [deviceLockViolation, setDeviceLockViolation] = useState<DeviceLockViolation | null>(null);
-  const isSupabaseLive = isSupabaseLiveConfigured();
+  const isFirebaseLive = isFirebaseLiveConfigured();
 
-  const refreshFromSupabase = useCallback(async () => {
-    if (!isSupabaseLiveConfigured()) return;
+  // Keep Firebase Auth state & ID token synchronized in memory
+  useEffect(() => {
+    if (!isFirebaseLive) return;
+    const unsub = subscribeToFirebaseAuth((fbUser) => {
+      if (fbUser) {
+        setFirebaseAuthUid(fbUser.uid);
+        void fbUser
+          .getIdToken()
+          .then((token) => {
+            if (token) setAuthAccessToken(token);
+          })
+          .catch(() => {});
+      } else {
+        setFirebaseAuthUid(null);
+      }
+    });
+    return () => unsub();
+  }, [isFirebaseLive]);
+
+  const refreshFromFirestore = useCallback(async () => {
+    if (!isFirebaseLiveConfigured()) return;
     try {
-      const snapshot = await fetchPlatformSnapshotFromSupabase();
+      const snapshot = await fetchPlatformSnapshotFromFirestore({
+        role: activeAppMode === 'admin' ? 'admin' : 'student',
+        userId: firebaseAuthUid || currentUserId || undefined,
+      });
       if (!snapshot) return;
       setDb((prev) => ({
         ...prev,
@@ -454,18 +527,100 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tracks: snapshot.tracks && snapshot.tracks.length > 0 ? snapshot.tracks : prev.tracks,
         storeItems:
           snapshot.storeItems && snapshot.storeItems.length > 0 ? snapshot.storeItems : prev.storeItems,
+        supportWhatsappNumber: snapshot.supportWhatsappNumber || prev.supportWhatsappNumber,
+        weeklySchedule:
+          snapshot.weeklySchedule && snapshot.weeklySchedule.length > 0
+            ? snapshot.weeklySchedule
+            : prev.weeklySchedule,
+        assignments:
+          snapshot.assignments && snapshot.assignments.length > 0
+            ? snapshot.assignments
+            : prev.assignments,
+        activationCodes:
+          snapshot.activationCodes && snapshot.activationCodes.length > 0
+            ? snapshot.activationCodes
+            : prev.activationCodes,
+        complaints:
+          snapshot.complaints && snapshot.complaints.length > 0
+            ? snapshot.complaints
+            : prev.complaints,
+        inquiries:
+          snapshot.inquiries && snapshot.inquiries.length > 0 ? snapshot.inquiries : prev.inquiries,
       }));
     } catch {
-      // Keep cached/local state if Supabase network call fails
+      // Keep cached/local state if Firestore network call fails
     }
-  }, []);
+  }, [activeAppMode, currentUserId, firebaseAuthUid]);
 
-  // Hydrate live data from Supabase tables on startup when VITE_SUPABASE_ANON_KEY is configured
+  // Real-time Cloud Firestore listeners (onSnapshot) for live catalog, orders, attendance, users, & live quiz room
   useEffect(() => {
-    if (isSupabaseLive) {
-      void refreshFromSupabase();
-    }
-  }, [isSupabaseLive, refreshFromSupabase]);
+    if (!isFirebaseLive) return;
+    const activeRole =
+      firebaseAuthUid && currentUserId
+        ? activeAppMode === 'admin'
+          ? 'admin'
+          : 'student'
+        : null;
+
+    const unsubscribe = subscribeToPlatformRealtime({
+      authUid: firebaseAuthUid,
+      role: activeRole,
+      callbacks: {
+        onTracks: (tracks) => {
+          setDb((prev) => ({ ...prev, tracks }));
+        },
+        onCourses: (courses) => {
+          setDb((prev) => ({ ...prev, courses }));
+        },
+        onStoreItems: (storeItems) => {
+          setDb((prev) => ({ ...prev, storeItems }));
+        },
+        onSupportWhatsappNumber: (supportWhatsappNumber) => {
+          setDb((prev) => ({ ...prev, supportWhatsappNumber }));
+        },
+        onWeeklySchedule: (weeklySchedule) => {
+          setDb((prev) => ({ ...prev, weeklySchedule }));
+        },
+        onAssignments: (assignments) => {
+          setDb((prev) => ({ ...prev, assignments }));
+        },
+        onActivationCodes: (activationCodes) => {
+          setDb((prev) => ({ ...prev, activationCodes }));
+        },
+        onComplaints: (complaints) => {
+          setDb((prev) => ({ ...prev, complaints }));
+        },
+        onInquiries: (inquiries) => {
+          setDb((prev) => ({ ...prev, inquiries }));
+        },
+        onUsers: (users) => {
+          setDb((prev) => ({ ...prev, users }));
+        },
+        onCurrentUserProfile: (profile) => {
+          setDb((prev) => {
+            const exists = prev.users.some((u) => u.id === profile.id);
+            return {
+              ...prev,
+              users: exists
+                ? prev.users.map((u) => (u.id === profile.id ? { ...u, ...profile } : u))
+                : [profile, ...prev.users],
+            };
+          });
+        },
+        onStoreOrders: (storeOrders) => {
+          setDb((prev) => ({ ...prev, storeOrders }));
+        },
+        onAttendanceRecords: (attendanceRecords) => {
+          setDb((prev) => ({ ...prev, attendanceRecords }));
+        },
+        onLiveQuizRoom: (room) => {
+          setLiveQuizRoom(room);
+        },
+      },
+    });
+
+    return () => unsubscribe();
+  }, [isFirebaseLive, firebaseAuthUid, currentUserId, activeAppMode]);
 
   const clearSimulatedAnswerTimers = useCallback(() => {
     simTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
@@ -614,7 +769,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           error: 'هذا التطبيق مخصص لحسابات الطلبة فقط.',
         };
       }
-      setSupabaseAccessToken(token ?? null);
+      setAuthAccessToken(token ?? null);
       setDb((prev) => {
         const exists = prev.users.some((u) => u.id === adminUser.id);
         return {
@@ -627,8 +782,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setDeviceLockViolation(null);
       setActiveAppMode('admin');
       setCurrentUserId(adminUser.id);
-      if (isSupabaseLiveConfigured()) {
-        void refreshFromSupabase();
+      if (isFirebaseLiveConfigured()) {
+        void refreshFromFirestore();
       }
       return { success: true };
     };
@@ -644,8 +799,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
-    // 2) Real Supabase Authentication & Table Hydration when configured
-    if (isSupabaseLiveConfigured()) {
+    // 2) Real Firebase Authentication & Cloud Firestore Hydration
+    if (isFirebaseLiveConfigured()) {
       let normalizedIdentifier = cleanInput;
       if (activeAppMode === 'student') {
         const phoneCheck = validateIraqiPhone(cleanInput);
@@ -655,7 +810,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         normalizedIdentifier = phoneCheck.normalized;
       }
 
-      const sbResult = await signInWithPhonePassword({
+      const fbResult = await signInWithPhonePassword({
         identifier: normalizedIdentifier,
         password: password.trim(),
         mode: activeAppMode,
@@ -663,23 +818,23 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         deviceId: activeDevice,
       });
 
-      if (!sbResult.success || !sbResult.user) {
-        if (sbResult.deviceLockViolation) {
-          setDeviceLockViolation(sbResult.deviceLockViolation);
+      if (!fbResult.success || !fbResult.user) {
+        if (fbResult.deviceLockViolation) {
+          setDeviceLockViolation(fbResult.deviceLockViolation);
         }
         return {
           success: false,
-          error: sbResult.error || 'رقم الهاتف أو كلمة المرور غير صحيحة.',
-          deviceLockViolation: sbResult.deviceLockViolation,
+          error: fbResult.error || 'رقم الهاتف أو كلمة المرور غير صحيحة.',
+          deviceLockViolation: fbResult.deviceLockViolation,
         };
       }
 
-      const authenticatedUser = sbResult.user;
+      const authenticatedUser = fbResult.user;
       if (authenticatedUser.role === 'admin') {
-        return activateAdminSession(authenticatedUser, sbResult.accessToken);
+        return activateAdminSession(authenticatedUser, fbResult.accessToken);
       }
 
-      setSupabaseAccessToken(sbResult.accessToken ?? null);
+      setAuthAccessToken(fbResult.accessToken ?? null);
       setDb((prev) => {
         const exists = prev.users.some((u) => u.id === authenticatedUser.id);
         return {
@@ -691,11 +846,11 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
       setDeviceLockViolation(null);
       setCurrentUserId(authenticatedUser.id);
-      void refreshFromSupabase();
+      void refreshFromFirestore();
       return { success: true };
     }
 
-    // 3) Interactive local fallback before Supabase keys are pasted into .env.local
+    // 3) Interactive local fallback when Firebase is disabled
     let found: UserProfile | undefined;
 
     if (activeAppMode === 'admin') {
@@ -746,7 +901,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         error:
           found.role === 'admin'
             ? 'تم إيقاف حساب المشرف مؤقتاً من قبل السوبر أدمن (الأستاذة تبارك).'
-            : 'تم تعليق هذا الحساب مؤقتاً من قبل الإدارة. يرجى التواصل مع الأستاذة تبارك الأزيرجاوي.',
+            : 'تم تعليق هذا الحساب مؤقتاً من قبل الإدارة. يرجى التواصل مع الأستاذة تبارك الزيرجاوي.',
       };
     }
 
@@ -818,7 +973,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       fullName: input.fullName.trim(),
       phone: phoneCheck.normalized,
       parentPhone: normalizedParentPhone,
-      password: isSupabaseLiveConfigured() ? '' : input.password,
+      password: isFirebaseLiveConfigured() ? '' : input.password,
       role: 'student',
       track: input.track,
       subStage: input.subStage,
@@ -833,22 +988,22 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       lastLoginAt: `اليوم ${formatCurrentTimeHHMM()}`,
     };
 
-    if (isSupabaseLiveConfigured()) {
-      const sbReg = await registerStudentInSupabase({
+    if (isFirebaseLiveConfigured()) {
+      const fbReg = await registerStudentInFirebase({
         user: newUser,
         password: input.password,
       });
-      if (!sbReg.success || !sbReg.user) {
-        return { success: false, error: sbReg.error || 'تعذر تسجيل الطالب في Supabase.' };
+      if (!fbReg.success || !fbReg.user) {
+        return { success: false, error: fbReg.error || 'تعذر تسجيل الطالب في Firebase.' };
       }
-      setSupabaseAccessToken(sbReg.accessToken ?? null);
+      setAuthAccessToken(fbReg.accessToken ?? null);
       setDb((prev) => ({
         ...prev,
-        users: [sbReg.user!, ...prev.users.filter((u) => u.id !== sbReg.user!.id)],
+        users: [fbReg.user!, ...prev.users.filter((u) => u.id !== fbReg.user!.id)],
       }));
       setDeviceLockViolation(null);
-      setCurrentUserId(sbReg.user.id);
-      void refreshFromSupabase();
+      setCurrentUserId(fbReg.user.id);
+      void refreshFromFirestore();
       return { success: true };
     }
 
@@ -874,7 +1029,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!trimmed) {
       setDb((prev) => ({
         ...prev,
-        users: prev.users.map((u) => (u.id === studentId ? { ...u, parentPhone: undefined } : u)),
+        users: prev.users.map((u) => {
+          if (u.id !== studentId) return u;
+          const updated = { ...u, parentPhone: undefined };
+          if (isFirebaseLiveConfigured()) {
+            void syncUserProfileToFirestore(updated);
+          }
+          return updated;
+        }),
       }));
       return { success: true };
     }
@@ -887,9 +1049,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) =>
-        u.id === studentId ? { ...u, parentPhone: check.normalized } : u
-      ),
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated = { ...u, parentPhone: check.normalized };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
     return { success: true };
   };
@@ -900,11 +1067,11 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const logout = () => {
-    setSupabaseAccessToken(null);
+    setAuthAccessToken(null);
     setCurrentUserId(null);
     setActiveAppMode(resolveActiveAppModeFromLocation());
-    if (isSupabaseLiveConfigured()) {
-      void signOutFromSupabase();
+    if (isFirebaseLiveConfigured()) {
+      void signOutFromFirebase();
     }
   };
 
@@ -1061,8 +1228,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           dateISO,
           timestamp,
         };
-        if (isSupabaseLiveConfigured()) {
-          void syncAttendanceToSupabase(record);
+        if (isFirebaseLiveConfigured()) {
+          void syncAttendanceToFirestore(record);
         }
         return {
           ...prev,
@@ -1193,7 +1360,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ...prev.chatMessages,
         {
           id: `msg-sys-${Date.now()}`,
-          senderName: 'الأستاذة تبارك الأزيرجاوي',
+          senderName: 'الأستاذة تبارك الزيرجاوي',
           senderRole: 'admin',
           text: `تم بدء البث المباشر الآن (${payload.title.trim() || 'محاضرة جديدة'}). أهلاً بالجميع!`,
           timestamp: nowTime,
@@ -1268,7 +1435,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const superAdminIdentity = currentUser?.phone || currentUser?.username || undefined;
     const isSuperPinValid = await verifySuperAdminPinOnServer(
       cleanPin,
-      supabaseAccessToken,
+      authAccessToken,
       superAdminIdentity
     );
     if (isSuperPinValid) {
@@ -1357,8 +1524,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       users: [newModerator, ...prev.users],
     }));
-    if (isSupabaseLiveConfigured()) {
-      void syncUserProfileToSupabase(newModerator);
+    if (isFirebaseLiveConfigured()) {
+      void syncUserProfileToFirestore(newModerator);
     }
 
     return { success: true, moderator: newModerator };
@@ -1443,8 +1610,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           password: nextPassword,
           permissions: Array.from(new Set(nextPerms)),
         };
-        if (isSupabaseLiveConfigured()) {
-          void syncUserProfileToSupabase(updatedMod);
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updatedMod);
         }
         return updatedMod;
       }),
@@ -1460,8 +1627,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       users: prev.users.map((u) => {
         if (u.id === moderatorId && u.role === 'admin' && !isSuperAdminUser(u)) {
           const updatedMod = { ...u, isActive: !u.isActive };
-          if (isSupabaseLiveConfigured()) {
-            void syncUserProfileToSupabase(updatedMod);
+          if (isFirebaseLiveConfigured()) {
+            void syncUserProfileToFirestore(updatedMod);
           }
           return updatedMod;
         }
@@ -1478,8 +1645,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         (u) => !(u.id === moderatorId && u.role === 'admin' && !isSuperAdminUser(u))
       ),
     }));
-    if (isSupabaseLiveConfigured()) {
-      void deleteUserFromSupabase(moderatorId);
+    if (isFirebaseLiveConfigured()) {
+      void deleteUserFromFirestore(moderatorId);
     }
   };
 
@@ -1508,7 +1675,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       label: input.label.trim(),
       shortLabel: (input.shortLabel || input.label).trim(),
       description:
-        input.description?.trim() || 'مرحلة دراسية مضافة يدوياً بإشراف الأستاذة تبارك الأزيرجاوي.',
+        input.description?.trim() || 'مرحلة دراسية مضافة يدوياً بإشراف الأستاذة تبارك الزيرجاوي.',
       subStages: cleanSubStages.length > 0 ? cleanSubStages : ['الصف الأول'],
       branches: cleanBranches && cleanBranches.length > 0 ? cleanBranches : undefined,
       departments: cleanDepts && cleanDepts.length > 0 ? cleanDepts : undefined,
@@ -1520,13 +1687,23 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       tracks: [...prev.tracks, newTrack],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncTrackToFirestore(newTrack);
+    }
     return newTrack;
   };
 
   const updateTrack = (trackId: TrackId, updates: Partial<Omit<TrackOption, 'id'>>) => {
     setDb((prev) => ({
       ...prev,
-      tracks: prev.tracks.map((t) => (t.id === trackId ? { ...t, ...updates } : t)),
+      tracks: prev.tracks.map((t) => {
+        if (t.id !== trackId) return t;
+        const updatedTrack = { ...t, ...updates };
+        if (isFirebaseLiveConfigured()) {
+          void syncTrackToFirestore(updatedTrack);
+        }
+        return updatedTrack;
+      }),
     }));
   };
 
@@ -1535,6 +1712,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       tracks: prev.tracks.filter((t) => t.id !== trackId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteTrackFromFirestore(trackId);
+    }
   };
 
   const generateCodes = (input: {
@@ -1569,6 +1749,11 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       activationCodes: [...created, ...prev.activationCodes],
     }));
+    if (isFirebaseLiveConfigured()) {
+      created.forEach((codeObj) => {
+        void syncActivationCodeToFirestore(codeObj);
+      });
+    }
     return created;
   };
 
@@ -1577,23 +1762,94 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       activationCodes: prev.activationCodes.filter((c) => c.id !== codeId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteActivationCodeFromFirestore(codeId);
+    }
   };
 
   const toggleStudentActive = (studentId: string) => {
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) => (u.id === studentId ? { ...u, isActive: !u.isActive } : u)),
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated = { ...u, isActive: !u.isActive };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
   const resetStudentDevice = (studentId: string) => {
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) => (u.id === studentId ? { ...u, deviceId: null } : u)),
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated = { ...u, deviceId: null };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+          void clearDeviceLockInFirestore(studentId);
+        }
+        return updated;
+      }),
     }));
     if (deviceLockViolation?.studentId === studentId) {
       setDeviceLockViolation(null);
     }
+  };
+
+  const updateStudentProfile: PlatformContextValue['updateStudentProfile'] = (
+    studentId,
+    updates
+  ) => {
+    const target = db.users.find((u) => u.id === studentId && u.role === 'student');
+    if (!target) {
+      return { success: false, error: 'تعذر العثور على حساب الطالب.' };
+    }
+    const nextName =
+      updates.fullName !== undefined ? updates.fullName.trim() : target.fullName;
+    if (nextName.length < 3) {
+      return { success: false, error: 'يرجى إدخال اسم الطالب الكامل (3 أحرف على الأقل).' };
+    }
+    let nextPhone = target.phone;
+    if (updates.phone !== undefined && updates.phone.trim() !== target.phone) {
+      const check = validateIraqiPhone(updates.phone);
+      if (!check.valid) {
+        return { success: false, error: check.error };
+      }
+      const dup = db.users.some((u) => u.id !== studentId && u.phone === check.normalized);
+      if (dup) {
+        return { success: false, error: 'رقم الهاتف مستخدم لطالب آخر في المنصة.' };
+      }
+      nextPhone = check.normalized;
+    }
+
+    setDb((prev) => ({
+      ...prev,
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated: UserProfile = {
+          ...u,
+          fullName: nextName,
+          phone: nextPhone,
+          track: updates.track ?? u.track,
+          subStage: updates.subStage?.trim() || u.subStage,
+          branch:
+            updates.branch !== undefined ? updates.branch.trim() || undefined : u.branch,
+          department:
+            updates.department !== undefined
+              ? updates.department.trim() || undefined
+              : u.department,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
+    }));
+
+    return { success: true };
   };
 
   const deleteStudent = (studentId: string) => {
@@ -1604,6 +1860,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       quizAttempts: prev.quizAttempts.filter((a) => a.studentId !== studentId),
       liveQuizResults: prev.liveQuizResults.filter((r) => r.studentId !== studentId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteUserFromFirestore(studentId);
+      void clearDeviceLockInFirestore(studentId);
+    }
     if (deviceLockViolation?.studentId === studentId) {
       setDeviceLockViolation(null);
     }
@@ -1634,9 +1894,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       subStage: input.subStage,
       branch: input.branch || undefined,
       subject: input.subject?.trim() || undefined,
-      instructor: 'الأستاذة تبارك الأزيرجاوي',
+      instructor: 'الأستاذة تبارك الزيرجاوي',
       coverImage: resolvedCover,
-      description: input.description.trim() || 'دورة تعليمية متكاملة بإشراف الأستاذة تبارك الأزيرجاوي.',
+      description: input.description.trim() || 'دورة تعليمية متكاملة بإشراف الأستاذة تبارك الزيرجاوي.',
       totalHours: input.totalHours.trim() || '12 ساعة مسجلة',
       priceIqd: Math.max(0, Number(input.priceIqd || 0)),
       lessons: [],
@@ -1647,8 +1907,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       courses: [newCourse, ...prev.courses],
     }));
-    if (isSupabaseLiveConfigured()) {
-      void syncCourseToSupabase(newCourse);
+    if (isFirebaseLiveConfigured()) {
+      void syncCourseToFirestore(newCourse);
     }
     return newCourse;
   };
@@ -1679,8 +1939,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               ? getTrackCover(nextTrack, prev.tracks)
               : course.coverImage,
         };
-        if (isSupabaseLiveConfigured()) {
-          void syncCourseToSupabase(updatedCourse);
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
         }
         return updatedCourse;
       }),
@@ -1696,8 +1956,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         enrolledCourseIds: u.enrolledCourseIds.filter((id) => id !== courseId),
       })),
     }));
-    if (isSupabaseLiveConfigured()) {
-      void deleteCourseFromSupabase(courseId);
+    if (isFirebaseLiveConfigured()) {
+      void deleteCourseFromFirestore(courseId);
     }
   };
 
@@ -1713,10 +1973,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           ...input,
           order: course.lessons.length + 1,
         });
-        return {
+        const updatedCourse: Course = {
           ...course,
           lessons: [...course.lessons, lesson],
         };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
       }),
     }));
   };
@@ -1736,7 +2000,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       courses: prev.courses.map((course) => {
         if (course.id !== courseId) return course;
-        return {
+        const updatedCourse: Course = {
           ...course,
           lessons: course.lessons.map((lesson) =>
             lesson.id === lessonId
@@ -1751,6 +2015,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               : lesson
           ),
         };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
       }),
     }));
   };
@@ -1760,12 +2028,16 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       courses: prev.courses.map((course) => {
         if (course.id !== courseId) return course;
-        return {
+        const updatedCourse: Course = {
           ...course,
           lessons: course.lessons
             .filter((l) => l.id !== lessonId)
             .map((l, idx) => ({ ...l, order: idx + 1 })),
         };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
       }),
       users: prev.users.map((u) => ({
         ...u,
@@ -1783,10 +2055,64 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       courses: prev.courses.map((course) => {
         if (course.id !== courseId) return course;
         const pdf = createDefaultPdfNote(input);
-        return {
+        const updatedCourse: Course = {
           ...course,
           notes: [...course.notes, pdf],
         };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
+      }),
+    }));
+  };
+
+  const updatePdfInCourse = (
+    courseId: string,
+    noteId: string,
+    updates: { title?: string; fileUrl?: string; pageCount?: number }
+  ) => {
+    setDb((prev) => ({
+      ...prev,
+      courses: prev.courses.map((course) => {
+        if (course.id !== courseId) return course;
+        const updatedCourse: Course = {
+          ...course,
+          notes: course.notes.map((n) =>
+            n.id === noteId
+              ? {
+                  ...n,
+                  title: updates.title !== undefined ? updates.title.trim() : n.title,
+                  fileUrl: updates.fileUrl !== undefined ? updates.fileUrl.trim() : n.fileUrl,
+                  pageCount:
+                    updates.pageCount !== undefined
+                      ? Math.max(1, Number(updates.pageCount) || 1)
+                      : n.pageCount,
+                }
+              : n
+          ),
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
+      }),
+    }));
+  };
+
+  const deletePdfFromCourse = (courseId: string, noteId: string) => {
+    setDb((prev) => ({
+      ...prev,
+      courses: prev.courses.map((course) => {
+        if (course.id !== courseId) return course;
+        const updatedCourse: Course = {
+          ...course,
+          notes: course.notes.filter((n) => n.id !== noteId),
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
       }),
     }));
   };
@@ -1810,23 +2136,73 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setDb((prev) => ({
       ...prev,
-      courses: prev.courses.map((course) =>
-        course.id === courseId
-          ? { ...course, quizzes: [newQuiz, ...course.quizzes] }
-          : course
-      ),
+      courses: prev.courses.map((course) => {
+        if (course.id !== courseId) return course;
+        const updatedCourse: Course = { ...course, quizzes: [newQuiz, ...course.quizzes] };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
+      }),
     }));
     return newQuiz;
+  };
+
+  const updateQuizInCourse = (
+    courseId: string,
+    quizId: string,
+    updates: {
+      title?: string;
+      timeLimitMinutes?: number;
+      questions?: Omit<QuizQuestion, 'id'>[];
+    }
+  ) => {
+    setDb((prev) => ({
+      ...prev,
+      courses: prev.courses.map((course) => {
+        if (course.id !== courseId) return course;
+        const updatedCourse: Course = {
+          ...course,
+          quizzes: course.quizzes.map((quiz) => {
+            if (quiz.id !== quizId) return quiz;
+            return {
+              ...quiz,
+              title: updates.title !== undefined ? updates.title.trim() : quiz.title,
+              timeLimitMinutes:
+                updates.timeLimitMinutes !== undefined
+                  ? Math.max(1, Math.min(180, updates.timeLimitMinutes || 10))
+                  : quiz.timeLimitMinutes,
+              questions: updates.questions
+                ? updates.questions.map((q, idx) => ({
+                    ...q,
+                    id: `q-${Date.now()}-${idx}`,
+                  }))
+                : quiz.questions,
+            };
+          }),
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
+      }),
+    }));
   };
 
   const deleteQuizFromCourse = (courseId: string, quizId: string) => {
     setDb((prev) => ({
       ...prev,
-      courses: prev.courses.map((course) =>
-        course.id === courseId
-          ? { ...course, quizzes: course.quizzes.filter((q) => q.id !== quizId) }
-          : course
-      ),
+      courses: prev.courses.map((course) => {
+        if (course.id !== courseId) return course;
+        const updatedCourse: Course = {
+          ...course,
+          quizzes: course.quizzes.filter((q) => q.id !== quizId),
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncCourseToFirestore(updatedCourse);
+        }
+        return updatedCourse;
+      }),
       quizAttempts: prev.quizAttempts.filter((a) => a.quizId !== quizId),
     }));
   };
@@ -1869,6 +2245,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       assignments: [created, ...prev.assignments],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncAssignmentToFirestore(created);
+    }
     return created;
   };
 
@@ -1891,27 +2270,30 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const resolvedTrack = input.track || getTrackForAudience(input.audience, db.tracks);
     setDb((prev) => ({
       ...prev,
-      assignments: prev.assignments.map((a) =>
-        a.id === assignmentId
-          ? {
-              ...a,
-              title: input.title.trim(),
-              details: input.details.trim(),
-              audience: input.audience,
-              track: resolvedTrack,
-              subStage: input.subStage && input.subStage !== 'جميع الصفوف' ? input.subStage : undefined,
-              branch:
-                input.branch && input.branch !== 'جميع الفروع' && input.branch !== 'الجميع'
-                  ? input.branch
-                  : undefined,
-              subject: input.subject?.trim() || undefined,
-              courseId: course?.id,
-              courseTitle: course?.title || input.subject?.trim() || undefined,
-              dueDate: input.dueDate,
-              priority: input.priority,
-            }
-          : a
-      ),
+      assignments: prev.assignments.map((a) => {
+        if (a.id !== assignmentId) return a;
+        const updated: DailyAssignment = {
+          ...a,
+          title: input.title.trim(),
+          details: input.details.trim(),
+          audience: input.audience,
+          track: resolvedTrack,
+          subStage: input.subStage && input.subStage !== 'جميع الصفوف' ? input.subStage : undefined,
+          branch:
+            input.branch && input.branch !== 'جميع الفروع' && input.branch !== 'الجميع'
+              ? input.branch
+              : undefined,
+          subject: input.subject?.trim() || undefined,
+          courseId: course?.id,
+          courseTitle: course?.title || input.subject?.trim() || undefined,
+          dueDate: input.dueDate,
+          priority: input.priority,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncAssignmentToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -1920,6 +2302,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       assignments: prev.assignments.filter((a) => a.id !== assignmentId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteAssignmentFromFirestore(assignmentId);
+    }
   };
 
   const toggleAssignmentCompleted = (assignmentId: string) => {
@@ -2081,13 +2466,16 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       systemMessages: [
         {
           id: `sys-${now}`,
-          text: `فتحت الأستاذة تبارك الأزيرجاوي غرفة «${resolvedTitle}» (${safeMinutes} دقيقة) — استعدوا للإجابة السريعة قبل انتهاء العداد!`,
+          text: `فتحت الأستاذة تبارك الزيرجاوي غرفة «${resolvedTitle}» (${safeMinutes} دقيقة) — استعدوا للإجابة السريعة قبل انتهاء العداد!`,
           timestamp: formatCurrentTimeHHMM(),
         },
       ],
     };
 
     setLiveQuizRoom(newRoom);
+    if (isFirebaseLiveConfigured()) {
+      void syncLiveQuizRoomToFirestore(newRoom);
+    }
   };
 
   const sendLiveQuizQuestion = useCallback(
@@ -2124,10 +2512,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           answers: {},
         };
         createdCard = card;
-        return {
+        const nextRoom: LiveQuizRoomSession = {
           ...prev,
           questions: [...prev.questions, card],
         };
+        if (isFirebaseLiveConfigured()) {
+          void syncLiveQuizRoomToFirestore(nextRoom);
+        }
+        return nextRoom;
       });
 
       // Trigger simulated classmates' real-time responses on the next tick
@@ -2229,7 +2621,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
     setLiveQuizRoom((prev) => {
       if (prev.status !== 'active') return prev;
-      return {
+      const nextRoom: LiveQuizRoomSession = {
         ...prev,
         questions: prev.questions.map((q) => {
           if (q.id !== questionId) return q;
@@ -2251,6 +2643,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           };
         }),
       };
+      if (isFirebaseLiveConfigured()) {
+        void syncLiveQuizRoomToFirestore(nextRoom);
+      }
+      return nextRoom;
     });
   };
 
@@ -2292,7 +2688,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         };
       });
 
-      return {
+      const endedRoom: LiveQuizRoomSession = {
         ...prev,
         status: 'ended',
         endedAt: now,
@@ -2306,6 +2702,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           },
         ],
       };
+      if (isFirebaseLiveConfigured()) {
+        void syncLiveQuizRoomToFirestore(endedRoom);
+      }
+      return endedRoom;
     });
   }, [clearSimulatedAnswerTimers]);
 
@@ -2325,7 +2725,11 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resetLiveQuizRoom = () => {
     clearSimulatedAnswerTimers();
-    setLiveQuizRoom(createIdleLiveQuizRoom());
+    const idleRoom = createIdleLiveQuizRoom();
+    setLiveQuizRoom(idleRoom);
+    if (isFirebaseLiveConfigured()) {
+      void syncLiveQuizRoomToFirestore(idleRoom);
+    }
   };
 
   const markLiveQuizResultsRead = (resultIds: string[]) => {
@@ -2354,9 +2758,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!newDueDate) return;
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) =>
-        u.id === studentId ? { ...u, subscriptionDueDate: newDueDate } : u
-      ),
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated = { ...u, subscriptionDueDate: newDueDate };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -2366,9 +2775,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       customDueDate?.trim() || computeNextMonthDueDate(target?.subscriptionDueDate);
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) =>
-        u.id === studentId ? { ...u, subscriptionDueDate: resolvedDate, isActive: true } : u
-      ),
+      users: prev.users.map((u) => {
+        if (u.id !== studentId) return u;
+        const updated = { ...u, subscriptionDueDate: resolvedDate, isActive: true };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
     return resolvedDate;
   };
@@ -2418,9 +2832,14 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setDb((prev) => ({
       ...prev,
-      users: prev.users.map((u) =>
-        u.id === req.studentId ? { ...u, subscriptionDueDate: nextDue, isActive: true } : u
-      ),
+      users: prev.users.map((u) => {
+        if (u.id !== req.studentId) return u;
+        const updated = { ...u, subscriptionDueDate: nextDue, isActive: true };
+        if (isFirebaseLiveConfigured()) {
+          void syncUserProfileToFirestore(updated);
+        }
+        return updated;
+      }),
       renewalRequests: prev.renewalRequests.map((r) =>
         r.id === requestId
           ? { ...r, status: 'approved', reviewedAt, newDueDate: nextDue }
@@ -2461,6 +2880,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       storeItems: [newItem, ...prev.storeItems],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncStoreItemToFirestore(newItem);
+    }
 
     return newItem;
   };
@@ -2468,24 +2890,27 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateStoreItem: PlatformContextValue['updateStoreItem'] = (itemId, updates) => {
     setDb((prev) => ({
       ...prev,
-      storeItems: prev.storeItems.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              ...updates,
-              title: updates.title !== undefined ? updates.title.trim() : item.title,
-              subject: updates.subject !== undefined ? updates.subject.trim() : item.subject,
-              subStage: updates.subStage !== undefined ? updates.subStage.trim() : item.subStage,
-              branch: updates.branch !== undefined ? updates.branch.trim() || undefined : item.branch,
-              description:
-                updates.description !== undefined ? updates.description.trim() : item.description,
-              priceIqd:
-                updates.priceIqd !== undefined
-                  ? Math.max(0, Math.round(Number(updates.priceIqd) || 0))
-                  : item.priceIqd,
-            }
-          : item
-      ),
+      storeItems: prev.storeItems.map((item) => {
+        if (item.id !== itemId) return item;
+        const updatedItem: StoreItem = {
+          ...item,
+          ...updates,
+          title: updates.title !== undefined ? updates.title.trim() : item.title,
+          subject: updates.subject !== undefined ? updates.subject.trim() : item.subject,
+          subStage: updates.subStage !== undefined ? updates.subStage.trim() : item.subStage,
+          branch: updates.branch !== undefined ? updates.branch.trim() || undefined : item.branch,
+          description:
+            updates.description !== undefined ? updates.description.trim() : item.description,
+          priceIqd:
+            updates.priceIqd !== undefined
+              ? Math.max(0, Math.round(Number(updates.priceIqd) || 0))
+              : item.priceIqd,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncStoreItemToFirestore(updatedItem);
+        }
+        return updatedItem;
+      }),
     }));
   };
 
@@ -2494,6 +2919,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       storeItems: prev.storeItems.filter((item) => item.id !== itemId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteStoreItemFromFirestore(itemId);
+    }
   };
 
   const updateStoreDeliverySettings = (updates: Partial<StoreDeliverySettings>) => {
@@ -2553,8 +2981,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       storeOrders: [order, ...prev.storeOrders],
     }));
-    if (isSupabaseLiveConfigured()) {
-      void syncStoreOrderToSupabase(order);
+    if (isFirebaseLiveConfigured()) {
+      void syncStoreOrderToFirestore(order);
     }
 
     return order;
@@ -2568,9 +2996,50 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ord.id === orderId ? { ...ord, status, updatedAt } : ord
       ),
     }));
-    if (isSupabaseLiveConfigured()) {
-      void updateStoreOrderStatusInSupabase(orderId, status, updatedAt);
+    if (isFirebaseLiveConfigured()) {
+      void updateStoreOrderStatusInFirestore(orderId, status, updatedAt);
     }
+  };
+
+  const deleteStoreOrder = (orderId: string) => {
+    setDb((prev) => ({
+      ...prev,
+      storeOrders: prev.storeOrders.filter((ord) => ord.id !== orderId),
+    }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteStoreOrderFromFirestore(orderId);
+    }
+  };
+
+  // Dynamic WhatsApp Support Number (Persisted in Firestore `settings/platform`)
+  const updateSupportWhatsappNumber = async (
+    rawPhone: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const cleaned = rawPhone.trim();
+    const digitsOnly = cleaned.replace(/[^\d+]/g, '');
+    if (digitsOnly.replace(/\D/g, '').length < 8) {
+      return {
+        success: false,
+        error: 'يرجى إدخال رقم واتساب صحيح (مثال: 07848333046 أو 9647848333046).',
+      };
+    }
+
+    setDb((prev) => ({
+      ...prev,
+      supportWhatsappNumber: cleaned,
+    }));
+
+    if (isFirebaseLiveConfigured()) {
+      const saved = await syncSupportWhatsappNumberToFirestore(cleaned);
+      if (!saved) {
+        return {
+          success: true,
+          error: 'تم الحفظ محلياً، وسيُزامن مع السحابة فور توفر صلاحية الكتابة.',
+        };
+      }
+    }
+
+    return { success: true };
   };
 
   // Teacher CV, Complaints & Inquiries Handlers
@@ -2632,6 +3101,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       complaints: [created, ...prev.complaints],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncComplaintToFirestore(created);
+    }
     return created;
   };
 
@@ -2640,24 +3112,34 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const repliedAt = `${new Date().toISOString().slice(0, 10)} ${formatCurrentTimeHHMM()}`;
     setDb((prev) => ({
       ...prev,
-      complaints: prev.complaints.map((c) =>
-        c.id === complaintId
-          ? {
-              ...c,
-              adminReply: replyText.trim(),
-              repliedAt,
-              status: markResolved ? 'resolved' : c.status,
-              isReplyReadByStudent: false,
-            }
-          : c
-      ),
+      complaints: prev.complaints.map((c) => {
+        if (c.id !== complaintId) return c;
+        const updated: StudentComplaint = {
+          ...c,
+          adminReply: replyText.trim(),
+          repliedAt,
+          status: markResolved ? 'resolved' : c.status,
+          isReplyReadByStudent: false,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncComplaintToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
   const updateComplaintStatus = (complaintId: string, status: ComplaintStatus) => {
     setDb((prev) => ({
       ...prev,
-      complaints: prev.complaints.map((c) => (c.id === complaintId ? { ...c, status } : c)),
+      complaints: prev.complaints.map((c) => {
+        if (c.id !== complaintId) return c;
+        const updated = { ...c, status };
+        if (isFirebaseLiveConfigured()) {
+          void syncComplaintToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -2666,6 +3148,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       complaints: prev.complaints.filter((c) => c.id !== complaintId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteComplaintFromFirestore(complaintId);
+    }
   };
 
   const markComplaintRepliesRead = (complaintIds: string[]) => {
@@ -2707,6 +3192,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       inquiries: [created, ...prev.inquiries],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncInquiryToFirestore(created);
+    }
     return created;
   };
 
@@ -2715,17 +3203,20 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const repliedAt = `${new Date().toISOString().slice(0, 10)} ${formatCurrentTimeHHMM()}`;
     setDb((prev) => ({
       ...prev,
-      inquiries: prev.inquiries.map((inq) =>
-        inq.id === inquiryId
-          ? {
-              ...inq,
-              adminReply: replyText.trim(),
-              repliedAt,
-              status: 'answered',
-              isReplyReadByStudent: false,
-            }
-          : inq
-      ),
+      inquiries: prev.inquiries.map((inq) => {
+        if (inq.id !== inquiryId) return inq;
+        const updated: StudentInquiry = {
+          ...inq,
+          adminReply: replyText.trim(),
+          repliedAt,
+          status: 'answered',
+          isReplyReadByStudent: false,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncInquiryToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -2734,6 +3225,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       inquiries: prev.inquiries.filter((inq) => inq.id !== inquiryId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteInquiryFromFirestore(inquiryId);
+    }
   };
 
   const markInquiryRepliesRead = (inquiryIds: string[]) => {
@@ -2767,29 +3261,35 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       weeklySchedule: [...prev.weeklySchedule, slot],
     }));
+    if (isFirebaseLiveConfigured()) {
+      void syncWeeklySlotToFirestore(slot);
+    }
     return slot;
   };
 
   const updateWeeklySlot: PlatformContextValue['updateWeeklySlot'] = (slotId, updates) => {
     setDb((prev) => ({
       ...prev,
-      weeklySchedule: prev.weeklySchedule.map((slot) =>
-        slot.id === slotId
-          ? {
-              ...slot,
-              ...updates,
-              timeLabel: updates.timeLabel !== undefined ? updates.timeLabel.trim() : slot.timeLabel,
-              subject: updates.subject !== undefined ? updates.subject.trim() : slot.subject,
-              branch:
-                updates.branch !== undefined
-                  ? updates.branch === 'جميع الفروع' || updates.branch === 'الجميع' || !updates.branch.trim()
-                    ? undefined
-                    : updates.branch.trim()
-                  : slot.branch,
-              note: updates.note !== undefined ? updates.note.trim() || undefined : slot.note,
-            }
-          : slot
-      ),
+      weeklySchedule: prev.weeklySchedule.map((slot) => {
+        if (slot.id !== slotId) return slot;
+        const updated: WeeklyLiveSlot = {
+          ...slot,
+          ...updates,
+          timeLabel: updates.timeLabel !== undefined ? updates.timeLabel.trim() : slot.timeLabel,
+          subject: updates.subject !== undefined ? updates.subject.trim() : slot.subject,
+          branch:
+            updates.branch !== undefined
+              ? updates.branch === 'جميع الفروع' || updates.branch === 'الجميع' || !updates.branch.trim()
+                ? undefined
+                : updates.branch.trim()
+              : slot.branch,
+          note: updates.note !== undefined ? updates.note.trim() || undefined : slot.note,
+        };
+        if (isFirebaseLiveConfigured()) {
+          void syncWeeklySlotToFirestore(updated);
+        }
+        return updated;
+      }),
     }));
   };
 
@@ -2798,6 +3298,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev,
       weeklySchedule: prev.weeklySchedule.filter((s) => s.id !== slotId),
     }));
+    if (isFirebaseLiveConfigured()) {
+      void deleteWeeklySlotFromFirestore(slotId);
+    }
   };
 
   // Breaking Announcement Banner Handlers
@@ -2848,9 +3351,9 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         currentUser,
         activeAppMode,
         isPreviewMode: IS_PREVIEW_MODE,
-        isSupabaseLive,
-        supabaseAccessToken,
-        refreshFromSupabase,
+        isFirebaseLive,
+        authAccessToken,
+        refreshFromFirestore,
         currentDeviceId,
         deviceLockViolation,
         clearDeviceLockViolation,
@@ -2889,6 +3392,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         deleteActivationCode,
         toggleStudentActive,
         resetStudentDevice,
+        updateStudentProfile,
         deleteStudent,
         addNewCourse,
         updateCourse,
@@ -2897,7 +3401,10 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateLessonInCourse,
         deleteLessonFromCourse,
         addPdfToCourse,
+        updatePdfInCourse,
+        deletePdfFromCourse,
         addQuizToCourse,
+        updateQuizInCourse,
         deleteQuizFromCourse,
         createAssignment,
         updateAssignment,
@@ -2929,6 +3436,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateStoreDeliverySettings,
         createStoreOrder,
         updateStoreOrderStatus,
+        deleteStoreOrder,
+        updateSupportWhatsappNumber,
         updateTeacherCV,
         submitComplaint,
         replyToComplaint,

@@ -59,7 +59,7 @@ function mapStudentMicErrorToArabic(err: unknown): string {
 export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSchedule }) => {
   const {
     currentUser,
-    supabaseAccessToken,
+    authAccessToken,
     liveSession,
     getTrackName,
     toggleMyRaiseHand,
@@ -230,7 +230,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
       const tokenResult = await requestLiveKitRoomToken({
         roomName: liveSession.id,
         courseId: liveSession.courseId,
-        accessToken: supabaseAccessToken,
+        accessToken: authAccessToken,
         role: currentUser.role,
       });
 
@@ -299,7 +299,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
         livekitRoomRef.current = null;
       }
       if (remoteAudioContainerRef.current) {
-        remoteAudioContainerRef.current.innerHTML = '';
+        remoteAudioContainerRef.current.replaceChildren();
       }
       setLivekitConnected(false);
       setHasRemoteVideo(false);
@@ -307,7 +307,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
       setAudioAutoplayBlocked(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, liveSession.isLive, liveSession.id, liveSession.courseId, supabaseAccessToken]);
+  }, [currentUser, liveSession.isLive, liveSession.id, liveSession.courseId, authAccessToken]);
 
   // Apply speaker mute toggle to all attached remote audio elements
   useEffect(() => {
@@ -371,22 +371,22 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
 
   if (!liveSession.isLive) {
     return (
-      <div className="rounded-2xl bg-white border border-slate-200 p-8 sm:p-12 text-center max-w-2xl mx-auto">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+      <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-8 sm:p-12 text-center max-w-2xl mx-auto">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.06] text-slate-400">
           <Radio className="h-7 w-7" />
         </div>
-        <h2 className="text-xl font-extrabold text-slate-900">
+        <h2 className="text-xl font-extrabold text-white">
           لا يوجد بث مباشر جاري في هذه اللحظة
         </h2>
-        <p className="mt-2 text-sm text-slate-600 leading-relaxed font-reading">
-          فور بدء الأستاذة تبارك الأزيرجاوي للبث المباشر، سيظهر إشعار فوري وبانر الدخول المباشر في الصفحة الرئيسية.
+        <p className="mt-2 text-sm text-slate-300 leading-relaxed font-reading">
+          فور بدء الأستاذة تبارك الزيرجاوي للبث المباشر، سيظهر إشعار فوري وبانر الدخول المباشر في الصفحة الرئيسية.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           {onOpenSchedule && (
             <button
               type="button"
               onClick={onOpenSchedule}
-              className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-5 text-xs sm:text-sm font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap"
+              className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 text-xs sm:text-sm font-extrabold text-white hover:brightness-105 whitespace-nowrap"
             >
               <CalendarClock className="h-4 w-4" />
               <span>عرض جدول البث الأسبوعي</span>
@@ -401,14 +401,14 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
   return (
     <div className="space-y-4">
       {/* Live Session Top Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#0F172A] px-4 sm:px-6 py-3.5 text-white">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#110D1F] px-4 sm:px-6 py-3.5 text-white">
         <div className="flex items-center gap-3 min-w-0">
           <BackButton onClick={onLeave} label="رجوع" variant="dark" size="sm" />
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-bold text-red-400">
               <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
               <span>بث مباشر الآن</span>
-              <span className="text-slate-500">·</span>
+              <span className="text-slate-400">·</span>
               <span className="text-slate-300 truncate">{getTrackName(liveSession.track)}</span>
             </div>
             <h1 className="text-sm sm:text-base font-extrabold text-white truncate mt-0.5">
@@ -418,7 +418,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs">
-          <div className="flex items-center gap-1.5 text-amber-300 font-semibold tabular-nums">
+          <div className="flex items-center gap-1.5 text-purple-300 font-semibold tabular-nums">
             <Users className="h-4 w-4" />
             <span>
               {liveSession.connectedCount} / {liveSession.maxCapacity} طالب
@@ -444,7 +444,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
             </span>
           )}
           <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-300">
-            <ShieldCheck className="h-4 w-4 text-[#D4AF37]" />
+            <ShieldCheck className="h-4 w-4 text-purple-300" />
             <span>حماية الشاشة مفعّلة</span>
           </span>
         </div>
@@ -454,7 +454,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Stage Column */}
         <div className="lg:col-span-8 flex flex-col gap-4">
-          <div className="rounded-2xl overflow-hidden bg-[#080E1E] border border-slate-800 shadow-sm">
+          <div className="rounded-2xl overflow-hidden bg-[#090712] border border-purple-500/20 shadow-sm">
             <PrivacyGuard active={true} className="relative aspect-video w-full">
               {/* Dynamic Watermark moving every 10 seconds */}
               <DynamicWatermark
@@ -471,7 +471,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                className={`absolute inset-0 z-10 h-full w-full object-contain bg-[#080E1E] ${
+                className={`absolute inset-0 z-10 h-full w-full object-contain bg-[#090712] ${
                   hasRemoteVideo ? 'block' : 'hidden'
                 }`}
               />
@@ -483,7 +483,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                     <button
                       type="button"
                       onClick={() => void handleUnlockRemoteAudio()}
-                      className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-[#D4AF37] px-3.5 text-xs font-extrabold text-slate-950 shadow hover:bg-amber-400"
+                      className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-3.5 text-xs font-extrabold text-white shadow hover:bg-purple-500"
                     >
                       <Volume2 className="h-4 w-4" />
                       <span>تفعيل صوت البث المباشر</span>
@@ -492,7 +492,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                   <button
                     type="button"
                     onClick={() => setSpeakerMuted((m) => !m)}
-                    className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-slate-950/80 border border-white/15 px-3 text-xs font-bold text-white hover:bg-slate-900"
+                    className="min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-slate-950/80 border border-purple-500/25 px-3 text-xs font-bold text-white hover:bg-slate-900"
                   >
                     {speakerMuted ? (
                       <>
@@ -511,20 +511,20 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
 
               {/* Live Broadcast Content matching Teacher Share Mode (visible when slides/preview mode active) */}
               {!hasRemoteVideo && (
-                <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-8 bg-gradient-to-br from-[#0F172A] via-[#172542] to-[#080E1E] text-white">
+                <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-8 bg-gradient-to-br from-[#1A1033] via-[#130C26] to-[#090712] text-white">
                   {/* Stage Header */}
                   <div className="flex items-center justify-between gap-3 text-xs text-slate-300">
                     <div className="flex items-center gap-2">
                       {liveSession.shareMode === 'slides' && (
-                        <Presentation className="h-4 w-4 text-[#D4AF37]" />
+                        <Presentation className="h-4 w-4 text-purple-300" />
                       )}
                       {liveSession.shareMode === 'whiteboard' && (
-                        <PenTool className="h-4 w-4 text-[#D4AF37]" />
+                        <PenTool className="h-4 w-4 text-purple-300" />
                       )}
                       {liveSession.shareMode === 'screen' && (
-                        <MonitorPlay className="h-4 w-4 text-[#D4AF37]" />
+                        <MonitorPlay className="h-4 w-4 text-purple-300" />
                       )}
-                      <span className="font-bold text-white">الأستاذة تبارك الأزيرجاوي</span>
+                      <span className="font-bold text-white">الأستاذة تبارك الزيرجاوي</span>
                       <span className="text-slate-400 hidden sm:inline">
                         ·{' '}
                         {liveSession.shareMode === 'slides'
@@ -534,20 +534,20 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                             : 'بث شاشة الأستاذة'}
                       </span>
                     </div>
-                    <span className="font-mono text-[11px] text-amber-300 tabular-nums" dir="ltr">
+                    <span className="font-mono text-[11px] text-purple-300 tabular-nums" dir="ltr">
                       LIVE · {liveSession.startedAt}
                     </span>
                   </div>
 
                   {/* Stage Center Content */}
                   {liveSession.shareMode === 'whiteboard' ? (
-                    <div className="my-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0B1224]/90 p-5 sm:p-7 space-y-4">
-                      <p className="text-xs font-bold text-[#D4AF37]">السبورة المباشرة — حل تمرين حي</p>
+                    <div className="my-auto mx-auto w-full max-w-2xl rounded-2xl border border-purple-500/20 bg-[#110D1F]/90 p-5 sm:p-7 space-y-4">
+                      <p className="text-xs font-bold text-purple-300">السبورة المباشرة — حل تمرين حي</p>
                       <div className="space-y-2.5 font-reading text-sm sm:text-base text-slate-100">
                         <p>المطلوب: أوجد الحد السابع في المتتابعة الحسابية التي حدها الأول 5 وأساسها 3.</p>
                         <div
                           dir="ltr"
-                          className="rounded-xl bg-slate-950/80 border border-amber-500/30 p-3.5 font-mono text-xs sm:text-sm text-amber-300 space-y-1 tabular-nums"
+                          className="rounded-xl bg-slate-950/80 border border-amber-500/30 p-3.5 font-mono text-xs sm:text-sm text-purple-300 space-y-1 tabular-nums"
                         >
                           <div>Uₙ = a + (n - 1) · d</div>
                           <div>U₇ = 5 + (7 - 1) · 3 = 5 + 18 = 23</div>
@@ -556,14 +556,14 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                     </div>
                   ) : (
                     <div className="my-auto mx-auto w-full max-w-2xl space-y-3 sm:space-y-4">
-                      <p className="text-xs font-semibold text-[#D4AF37]">{activeSlide.label}</p>
+                      <p className="text-xs font-semibold text-purple-300">{activeSlide.label}</p>
                       <h2 className="text-lg sm:text-2xl font-extrabold text-white leading-snug">
                         {activeSlide.heading}
                       </h2>
                       <ul className="space-y-2 text-xs sm:text-sm text-slate-200 font-reading leading-relaxed">
                         {activeSlide.bullets.map((b, i) => (
                           <li key={i} className="flex items-start gap-2">
-                            <span className="font-mono text-[#D4AF37] font-bold tabular-nums">
+                            <span className="font-mono text-purple-300 font-bold tabular-nums">
                               0{i + 1}.
                             </span>
                             <span>{b}</span>
@@ -572,7 +572,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                       </ul>
                       <div
                         dir="ltr"
-                        className="inline-block rounded-xl bg-slate-950/75 border border-amber-400/30 px-4 py-2 font-mono text-xs sm:text-sm font-semibold text-[#F59E0B] tabular-nums"
+                        className="inline-block rounded-xl bg-slate-950/75 border border-purple-400/35 px-4 py-2 font-mono text-xs sm:text-sm font-semibold text-purple-300 tabular-nums"
                       >
                         {activeSlide.formula}
                       </div>
@@ -598,7 +598,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
           {livekitError && (
             <div
               role="alert"
-              className="rounded-xl bg-amber-50 border border-amber-300 px-4 py-3 text-xs font-bold text-amber-900"
+              className="rounded-xl bg-amber-500/15 border border-amber-400/40 px-4 py-3 text-xs font-bold text-amber-200"
             >
               {livekitError}
             </div>
@@ -607,10 +607,10 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
           {studentMicError && (
             <div
               role="alert"
-              className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-red-900"
+              className="rounded-xl bg-rose-500/15 border border-rose-400/35 px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-red-900"
             >
               <div className="flex items-start gap-2.5">
-                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
                 <span className="font-bold leading-relaxed">{studentMicError}</span>
               </div>
               <button
@@ -625,14 +625,14 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
           )}
 
           {/* Student Controls Bar */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-4 flex flex-wrap items-center justify-between gap-3">
             {/* Mic Status Indicator + Real-Time Audio Level Bar */}
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className={`flex h-11 w-11 items-center justify-center rounded-xl shrink-0 ${
                   micAllowed && !localMicMuted && studentMicActive
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
+                    ? 'bg-emerald-100 text-emerald-300'
+                    : 'bg-white/[0.06] text-slate-400'
                 }`}
               >
                 {micAllowed && !localMicMuted && studentMicActive ? (
@@ -642,7 +642,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-900">
+                <p className="text-sm font-bold text-white">
                   {micAllowed
                     ? localMicMuted
                       ? 'المايك متاح لك (مكتوم حالياً من جهازك)'
@@ -653,8 +653,8 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                 </p>
                 {micAllowed && !localMicMuted && studentMicActive ? (
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="text-[11px] font-semibold text-emerald-700">مستوى صوتك:</span>
-                    <div className="w-28 h-2 rounded-full bg-slate-200 overflow-hidden">
+                    <span className="text-[11px] font-semibold text-emerald-300">مستوى صوتك:</span>
+                    <div className="w-28 h-2 rounded-full bg-white/10 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-emerald-500 transition-all duration-75"
                         style={{ width: `${Math.max(studentMicLevel, 4)}%` }}
@@ -662,7 +662,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     {micAllowed
                       ? 'سمحت لك الأستاذة تبارك بالمشاركة الصوتية.'
                       : 'ارفع يدك لطلب الإذن بالتحدث من الأستاذة تبارك.'}
@@ -679,7 +679,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                   onClick={() => setLocalMicMuted((m) => !m)}
                   className={`flex-1 sm:flex-none min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl px-4 text-xs sm:text-sm font-bold transition-colors whitespace-nowrap ${
                     localMicMuted
-                      ? 'bg-slate-200 text-slate-800 hover:bg-slate-300'
+                      ? 'bg-white/10 text-slate-100 hover:bg-slate-300'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700'
                   }`}
                 >
@@ -693,8 +693,8 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                 onClick={toggleMyRaiseHand}
                 className={`flex-1 sm:flex-none min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl px-5 text-xs sm:text-sm font-bold transition-colors whitespace-nowrap ${
                   handRaised
-                    ? 'bg-[#D4AF37] text-slate-950 hover:bg-amber-400'
-                    : 'bg-[#0F172A] text-white hover:bg-slate-800'
+                    ? 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 text-white hover:bg-purple-500'
+                    : 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] text-white hover:brightness-110'
                 }`}
               >
                 <Hand className="h-4 w-4" />
@@ -705,15 +705,15 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
         </div>
 
         {/* Live Chat Column */}
-        <div className="lg:col-span-4 rounded-2xl bg-white border border-slate-200 flex flex-col h-[420px] lg:h-auto lg:max-h-[560px] overflow-hidden">
-          <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900">الدردشة المباشرة مع الأستاذة</h2>
-            <span className="text-xs text-slate-500 tabular-nums">
+        <div className="lg:col-span-4 rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 flex flex-col h-[420px] lg:h-auto lg:max-h-[560px] overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-purple-500/15 flex items-center justify-between">
+            <h2 className="text-sm font-extrabold text-white">الدردشة المباشرة مع الأستاذة</h2>
+            <span className="text-xs text-slate-400 tabular-nums">
               {liveSession.chatMessages.length} رسالة
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/70">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white/[0.035]">
             {liveSession.chatMessages.map((msg) => {
               const isAdmin = msg.senderRole === 'admin';
               return (
@@ -721,14 +721,14 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
                   key={msg.id}
                   className={`rounded-xl p-3 text-sm ${
                     isAdmin
-                      ? 'bg-[#0F172A] text-white'
-                      : 'bg-white border border-slate-200 text-slate-800'
+                      ? 'bg-[#110D1F] text-white'
+                      : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-100'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span
                       className={`text-xs font-bold ${
-                        isAdmin ? 'text-[#D4AF37]' : 'text-slate-900'
+                        isAdmin ? 'text-purple-300' : 'text-white'
                       }`}
                     >
                       {msg.senderName}
@@ -747,18 +747,18 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ onLeave, onOpenSch
             <div ref={chatEndRef} />
           </div>
 
-          <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex gap-2">
+          <form onSubmit={handleSend} className="p-3 bg-white/[0.045] backdrop-blur-xl border-t border-purple-500/20 flex gap-2">
             <input
               type="text"
               value={chatText}
               onChange={(e) => setChatText(e.target.value)}
               placeholder="اكتب سؤالك للأستاذة تبارك..."
-              className="flex-1 min-h-[44px] rounded-xl border border-slate-300 bg-slate-50 px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0F172A] focus:bg-white focus:outline-none"
+              className="flex-1 min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.04] px-3.5 text-sm text-white placeholder:text-slate-500 focus:border-purple-400 focus:bg-[#161029] focus:outline-none"
             />
             <button
               type="submit"
               aria-label="إرسال الرسالة"
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F172A] text-[#D4AF37] hover:bg-slate-800 shrink-0"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] text-purple-300 hover:brightness-110 shrink-0"
             >
               <Send className="h-4 w-4" />
             </button>

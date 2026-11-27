@@ -35,6 +35,7 @@ export const AdminStudents: React.FC = () => {
     getTrackName,
     toggleStudentActive,
     resetStudentDevice,
+    updateStudentProfile,
     deleteStudent,
     updateStudentDueDate,
     renewStudentSubscription,
@@ -48,6 +49,13 @@ export const AdminStudents: React.FC = () => {
   const [editingParentId, setEditingParentId] = useState<string | null>(null);
   const [parentPhoneDraft, setParentPhoneDraft] = useState<string>('');
   const [parentPhoneError, setParentPhoneError] = useState<string | null>(null);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [editStudentName, setEditStudentName] = useState('');
+  const [editStudentPhone, setEditStudentPhone] = useState('');
+  const [editStudentTrack, setEditStudentTrack] = useState<TrackId>('vocational');
+  const [editStudentSubStage, setEditStudentSubStage] = useState('');
+  const [editStudentBranch, setEditStudentBranch] = useState('');
+  const [editStudentError, setEditStudentError] = useState<string | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string; phone: string } | null>(null);
 
   const students = useMemo(() => {
@@ -112,13 +120,45 @@ export const AdminStudents: React.FC = () => {
     showToast(`تم حفظ رقم ولي أمر الطالب «${name}» بنجاح.`);
   };
 
+  const openEditStudentRow = (studentId: string) => {
+    const stu = db.users.find((u) => u.id === studentId);
+    if (!stu) return;
+    setEditingStudentId(stu.id);
+    setEditStudentName(stu.fullName);
+    setEditStudentPhone(stu.phone);
+    setEditStudentTrack(stu.track);
+    setEditStudentSubStage(stu.subStage);
+    setEditStudentBranch(stu.branch ?? stu.department ?? '');
+    setEditStudentError(null);
+  };
+
+  const handleSaveStudentEdit = (studentId: string) => {
+    setEditStudentError(null);
+    const trackObj = db.tracks.find((t) => t.id === editStudentTrack);
+    const usesDept = !trackObj?.branches && Boolean(trackObj?.departments);
+    const res = updateStudentProfile(studentId, {
+      fullName: editStudentName,
+      phone: editStudentPhone,
+      track: editStudentTrack,
+      subStage: editStudentSubStage,
+      branch: !usesDept ? editStudentBranch : '',
+      department: usesDept ? editStudentBranch : '',
+    });
+    if (!res.success) {
+      setEditStudentError(res.error ?? 'تعذر حفظ التعديلات.');
+      return;
+    }
+    setEditingStudentId(null);
+    showToast(`تم تحديث بيانات الطالب «${editStudentName.trim()}» وحفظها بنجاح.`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white">
           إدارة الطلاب، الحضور وتقارير أولياء الأمور، والاشتراكات
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-400">
           تابعي حضور وغياب كل طالب ودرجات كوزاته، أرسلي تقرير ولي الأمر عبر واتساب بضغطة زر، وحدّدي مواعيد الدفع وفك قفل الأجهزة.
         </p>
       </div>
@@ -126,15 +166,15 @@ export const AdminStudents: React.FC = () => {
       {actionFeedback && (
         <div
           role="status"
-          className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900"
+          className="rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-200"
         >
           {actionFeedback}
         </div>
       )}
 
-      <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
+      <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
         {/* Search & Track Filter Bar */}
-        <div className="p-4 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="p-4 border-b border-purple-500/20 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: 'all', label: 'جميع المراحل' },
@@ -149,8 +189,8 @@ export const AdminStudents: React.FC = () => {
                 onClick={() => setTrackFilter(item.id)}
                 className={`min-h-[40px] rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                   trackFilter === item.id
-                    ? 'bg-[#0F172A] text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-[#110D1F] text-white'
+                    : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                 }`}
               >
                 {item.label}
@@ -164,7 +204,7 @@ export const AdminStudents: React.FC = () => {
               value={searchPhone}
               onChange={(e) => setSearchPhone(e.target.value)}
               placeholder="بحث برقم الهاتف (07...) أو الاسم"
-              className="w-full min-h-[42px] rounded-xl border border-slate-300 bg-slate-50 pr-9 pl-3 text-xs text-slate-900 focus:border-[#0F172A] focus:bg-white focus:outline-none"
+              className="w-full min-h-[42px] rounded-xl border border-purple-500/25 bg-white/[0.04] pr-9 pl-3 text-xs text-white focus:border-purple-400 focus:bg-[#161029] focus:outline-none"
             />
             <Search className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
@@ -174,7 +214,7 @@ export const AdminStudents: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-600">
+              <tr className="border-b border-purple-500/20 bg-white/[0.04] text-xs font-bold text-slate-300">
                 <th className="py-3 px-4">الطالب والمسار</th>
                 <th className="py-3 px-4">الحضور والمستوى وولي الأمر</th>
                 <th className="py-3 px-4">تاريخ الاستحقاق (يدوي)</th>
@@ -183,10 +223,10 @@ export const AdminStudents: React.FC = () => {
                 <th className="py-3 px-4 text-left">التحكم والتجديد</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-purple-500/15">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-xs text-slate-500">
+                  <td colSpan={6} className="py-10 text-center text-xs text-slate-400">
                     لا يوجد طلاب مطابقون للبحث الحالي.
                   </td>
                 </tr>
@@ -215,13 +255,13 @@ export const AdminStudents: React.FC = () => {
 
                   return (
                     <React.Fragment key={student.id}>
-                      <tr className="hover:bg-slate-50/70">
+                      <tr className="hover:bg-white/[0.06]">
                         <td className="py-3.5 px-4">
-                          <p className="text-xs sm:text-sm font-bold text-slate-900">
+                          <p className="text-xs sm:text-sm font-bold text-white">
                             {student.fullName}
                           </p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            <span className="font-mono font-semibold text-slate-700" dir="ltr">
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            <span className="font-mono font-semibold text-slate-200" dir="ltr">
                               {student.phone}
                             </span>{' '}
                             · {getTrackName(student.track)} · {student.subStage}
@@ -234,19 +274,19 @@ export const AdminStudents: React.FC = () => {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2 text-xs tabular-nums">
-                              <span className="font-bold text-emerald-700">
+                              <span className="font-bold text-emerald-300">
                                 حضور {perf.attendedCount}
                               </span>
                               <span className="text-slate-300">·</span>
                               <span
                                 className={`font-bold ${
-                                  perf.absentCount > 0 ? 'text-amber-700' : 'text-slate-500'
+                                  perf.absentCount > 0 ? 'text-purple-300' : 'text-slate-400'
                                 }`}
                               >
                                 غياب {perf.absentCount}
                               </span>
                               <span className="text-slate-300">·</span>
-                              <span className="font-mono font-extrabold text-[#0F172A]">
+                              <span className="font-mono font-extrabold text-white">
                                 {perf.averageScorePercentage !== null
                                   ? `${perf.averageScorePercentage}%`
                                   : '—'}
@@ -262,7 +302,7 @@ export const AdminStudents: React.FC = () => {
                                     value={parentPhoneDraft}
                                     onChange={(e) => setParentPhoneDraft(e.target.value)}
                                     placeholder="07XXXXXXXXX"
-                                    className="w-32 min-h-[30px] rounded-lg border border-slate-300 bg-white px-2 font-mono text-xs text-slate-900"
+                                    className="w-32 min-h-[30px] rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-2 font-mono text-xs text-white"
                                   />
                                   <button
                                     type="button"
@@ -281,20 +321,20 @@ export const AdminStudents: React.FC = () => {
                                       setParentPhoneError(null);
                                     }}
                                     aria-label="إلغاء"
-                                    className="h-7 w-7 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600"
+                                    className="h-7 w-7 inline-flex items-center justify-center rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl text-slate-300"
                                   >
                                     <X className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                                 {parentPhoneError && (
-                                  <p className="text-[10px] font-bold text-red-700 whitespace-normal max-w-[200px]">
+                                  <p className="text-[10px] font-bold text-rose-300 whitespace-normal max-w-[200px]">
                                     {parentPhoneError}
                                   </p>
                                 )}
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                                <Phone className="h-3 w-3 text-[#B48A1E] shrink-0" />
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-300">
+                                <Phone className="h-3 w-3 text-purple-300 shrink-0" />
                                 <span className="font-mono" dir="ltr">
                                   {student.parentPhone || 'بدون رقم ولي أمر'}
                                 </span>
@@ -305,7 +345,7 @@ export const AdminStudents: React.FC = () => {
                                     setParentPhoneDraft(student.parentPhone ?? '');
                                     setParentPhoneError(null);
                                   }}
-                                  className="text-slate-400 hover:text-[#0F172A] p-0.5"
+                                  className="text-slate-400 hover:text-white p-0.5"
                                   aria-label={`تعديل رقم ولي أمر ${student.fullName}`}
                                 >
                                   <Pencil className="h-3 w-3" />
@@ -331,7 +371,7 @@ export const AdminStudents: React.FC = () => {
                                   setParentPhoneDraft('');
                                   setParentPhoneError(null);
                                 }}
-                                className="text-[11px] font-bold text-[#B48A1E] hover:underline"
+                                className="text-[11px] font-bold text-purple-300 hover:underline"
                               >
                                 + إضافة رقم واتساب ولي الأمر
                               </button>
@@ -353,9 +393,9 @@ export const AdminStudents: React.FC = () => {
                                 );
                               }}
                               aria-label={`تاريخ استحقاق ${student.fullName}`}
-                              className="min-h-[36px] rounded-lg border border-slate-300 bg-white px-2.5 font-mono text-xs font-bold text-slate-900 tabular-nums focus:border-[#0F172A] focus:outline-none"
+                              className="min-h-[36px] rounded-lg border border-purple-500/25 bg-[#110D1F]/85 px-2.5 font-mono text-xs font-bold text-white tabular-nums focus:border-purple-400 focus:outline-none"
                             />
-                            <p className="text-[10px] text-slate-500 font-mono tabular-nums">
+                            <p className="text-[10px] text-slate-400 font-mono tabular-nums">
                               نهاية السماح (35 يوم): <span dir="ltr">{sub.graceEndDate}</span>
                             </p>
                           </div>
@@ -365,32 +405,32 @@ export const AdminStudents: React.FC = () => {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <div className="space-y-0.5">
                             {sub.status === 'active' && (
-                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-700">
+                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-300">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
                                 <span>نشط</span>
                               </span>
                             )}
                             {sub.status === 'expiring_soon' && (
-                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-700">
+                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-300">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span>ينتهي قريباً</span>
                               </span>
                             )}
                             {sub.status === 'grace_period' && (
-                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-orange-700">
+                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-amber-300">
                                 <AlertTriangle className="h-3.5 w-3.5" />
                                 <span>ضمن مهلة السماح 5 أيام</span>
                               </span>
                             )}
                             {sub.status === 'locked' && (
-                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-red-700">
+                              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-rose-300">
                                 <Lock className="h-3.5 w-3.5" />
                                 <span>منتهي ومقفول</span>
                               </span>
                             )}
-                            <p className="text-[11px] text-slate-500">{sub.shortHint}</p>
+                            <p className="text-[11px] text-slate-400">{sub.shortHint}</p>
                             {!student.isActive && (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-300">
                                 <ShieldAlert className="h-3 w-3" />
                                 <span>الحساب محظور إدارياً</span>
                               </span>
@@ -402,14 +442,14 @@ export const AdminStudents: React.FC = () => {
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {student.deviceId ? (
                             <span
-                              className="inline-flex items-center gap-1.5 font-mono text-xs text-slate-700 tabular-nums"
+                              className="inline-flex items-center gap-1.5 font-mono text-xs text-slate-200 tabular-nums"
                               dir="ltr"
                             >
-                              <Smartphone className="h-3.5 w-3.5 text-[#B48A1E]" />
+                              <Smartphone className="h-3.5 w-3.5 text-purple-300" />
                               {student.deviceId}
                             </span>
                           ) : (
-                            <span className="text-xs font-semibold text-amber-700">
+                            <span className="text-xs font-semibold text-amber-300">
                               مفتوح (بانتظار جهاز)
                             </span>
                           )}
@@ -430,7 +470,7 @@ export const AdminStudents: React.FC = () => {
                                   );
                                 }
                               }}
-                              className="min-h-[36px] inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-3 text-xs font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap"
+                              className="min-h-[36px] inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-3 text-xs font-extrabold text-white hover:brightness-105 whitespace-nowrap"
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                               <span>تجديد الاشتراك</span>
@@ -440,9 +480,9 @@ export const AdminStudents: React.FC = () => {
                               type="button"
                               disabled={!student.deviceId}
                               onClick={() => handleResetDevice(student.id, student.fullName)}
-                              className="min-h-[36px] inline-flex items-center gap-1 rounded-lg bg-[#0F172A] px-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-40 whitespace-nowrap"
+                              className="min-h-[36px] inline-flex items-center gap-1 rounded-lg bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-2.5 text-xs font-bold text-white hover:brightness-110 disabled:opacity-40 whitespace-nowrap"
                             >
-                              <RotateCcw className="h-3.5 w-3.5 text-[#D4AF37]" />
+                              <RotateCcw className="h-3.5 w-3.5 text-purple-300" />
                               <span>فك الجهاز</span>
                             </button>
 
@@ -453,12 +493,25 @@ export const AdminStudents: React.FC = () => {
                               }
                               className={`min-h-[36px] inline-flex items-center gap-1 rounded-lg border px-2.5 text-xs font-bold whitespace-nowrap transition-colors ${
                                 student.isActive
-                                  ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                                  : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                  ? 'border-rose-400/35 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25'
+                                  : 'border-emerald-400/35 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-100'
                               }`}
                             >
                               <Ban className="h-3.5 w-3.5" />
                               <span>{student.isActive ? 'حظر' : 'تفعيل'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                editingStudentId === student.id
+                                  ? setEditingStudentId(null)
+                                  : openEditStudentRow(student.id)
+                              }
+                              className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-purple-400/35 bg-purple-500/15 px-2.5 text-xs font-bold text-purple-200 hover:bg-purple-500/25 whitespace-nowrap"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span>تعديل</span>
                             </button>
 
                             <button
@@ -471,7 +524,7 @@ export const AdminStudents: React.FC = () => {
                                 })
                               }
                               aria-label={`حذف الطالب ${student.fullName}`}
-                              className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-red-300 bg-red-600 px-2.5 text-xs font-bold text-white hover:bg-red-700 whitespace-nowrap transition-colors"
+                              className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-rose-400/40 bg-red-600 px-2.5 text-xs font-bold text-white hover:bg-red-700 whitespace-nowrap transition-colors"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               <span>حذف</span>
@@ -480,19 +533,122 @@ export const AdminStudents: React.FC = () => {
                         </td>
                       </tr>
 
+                      {/* Inline Manual Student Profile Edit Row */}
+                      {editingStudentId === student.id && (
+                        <tr className="bg-purple-500/10">
+                          <td colSpan={6} className="px-4 py-4">
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-extrabold text-purple-200">
+                                  تعديل بيانات الطالب «{student.fullName}»
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingStudentId(null)}
+                                  className="text-xs font-bold text-slate-300 hover:text-white"
+                                >
+                                  إغلاق
+                                </button>
+                              </div>
+                              {editStudentError && (
+                                <p className="rounded-lg bg-rose-500/15 border border-rose-400/35 px-3 py-2 text-xs font-bold text-rose-200">
+                                  {editStudentError}
+                                </p>
+                              )}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                                <input
+                                  type="text"
+                                  value={editStudentName}
+                                  onChange={(e) => setEditStudentName(e.target.value)}
+                                  placeholder="الاسم الثلاثي الكامل"
+                                  className="min-h-[38px] rounded-lg border border-purple-500/25 bg-[#110D1F] px-3 text-xs font-bold text-white"
+                                />
+                                <input
+                                  type="tel"
+                                  dir="ltr"
+                                  value={editStudentPhone}
+                                  onChange={(e) => setEditStudentPhone(e.target.value)}
+                                  placeholder="07XXXXXXXXX"
+                                  className="min-h-[38px] rounded-lg border border-purple-500/25 bg-[#110D1F] px-3 text-left font-mono text-xs font-bold text-white"
+                                />
+                                <select
+                                  value={editStudentTrack}
+                                  onChange={(e) => {
+                                    const next = e.target.value as TrackId;
+                                    setEditStudentTrack(next);
+                                    const trk = db.tracks.find((t) => t.id === next);
+                                    if (trk) {
+                                      setEditStudentSubStage(trk.subStages[0] ?? '');
+                                      const specs = trk.branches ?? trk.departments ?? [];
+                                      setEditStudentBranch(specs[0] ?? '');
+                                    }
+                                  }}
+                                  className="min-h-[38px] rounded-lg border border-purple-500/25 bg-[#110D1F] px-2.5 text-xs font-bold text-white"
+                                >
+                                  {db.tracks.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                      {t.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={editStudentSubStage}
+                                  onChange={(e) => setEditStudentSubStage(e.target.value)}
+                                  className="min-h-[38px] rounded-lg border border-purple-500/25 bg-[#110D1F] px-2.5 text-xs font-bold text-white"
+                                >
+                                  {(db.tracks.find((t) => t.id === editStudentTrack)?.subStages ?? []).map((st) => (
+                                    <option key={st} value={st}>
+                                      {st}
+                                    </option>
+                                  ))}
+                                </select>
+                                <div className="flex items-center gap-2">
+                                  {((db.tracks.find((t) => t.id === editStudentTrack)?.branches ??
+                                    db.tracks.find((t) => t.id === editStudentTrack)?.departments ??
+                                    []).length > 0) && (
+                                    <select
+                                      value={editStudentBranch}
+                                      onChange={(e) => setEditStudentBranch(e.target.value)}
+                                      className="flex-1 min-h-[38px] rounded-lg border border-purple-500/25 bg-[#110D1F] px-2 text-xs font-bold text-white"
+                                    >
+                                      {(
+                                        db.tracks.find((t) => t.id === editStudentTrack)?.branches ??
+                                        db.tracks.find((t) => t.id === editStudentTrack)?.departments ??
+                                        []
+                                      ).map((sp) => (
+                                        <option key={sp} value={sp}>
+                                          {sp}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveStudentEdit(student.id)}
+                                    className="min-h-[38px] rounded-lg bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-4 text-xs font-extrabold text-white hover:brightness-110 whitespace-nowrap"
+                                  >
+                                    حفظ
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+
                       {/* Inline Quick Renew Row (Add +1 Month OR Pick Custom Date) */}
                       {isRenewingThis && (
-                        <tr className="bg-amber-50/70">
+                        <tr className="bg-amber-500/12">
                           <td colSpan={6} className="px-4 py-3">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="font-extrabold text-slate-900">
+                                <span className="font-extrabold text-white">
                                   تجديد اشتراك «{student.fullName}»:
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleQuickAddMonth(student.id, student.fullName)}
-                                  className="min-h-[36px] rounded-lg bg-[#0F172A] px-3.5 text-xs font-extrabold text-[#D4AF37] hover:bg-slate-800"
+                                  className="min-h-[36px] rounded-lg bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-3.5 text-xs font-extrabold text-purple-300 hover:brightness-110"
                                 >
                                   + إضافة شهر بضغطة زر (30 يوماً)
                                 </button>
@@ -502,7 +658,7 @@ export const AdminStudents: React.FC = () => {
                                   dir="ltr"
                                   value={customRenewDate}
                                   onChange={(e) => setCustomRenewDate(e.target.value)}
-                                  className="min-h-[36px] rounded-lg border border-slate-300 bg-white px-2.5 font-mono text-xs font-bold text-slate-900 tabular-nums"
+                                  className="min-h-[36px] rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-2.5 font-mono text-xs font-bold text-white tabular-nums"
                                 />
                                 <button
                                   type="button"
@@ -515,7 +671,7 @@ export const AdminStudents: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setRenewingStudentId(null)}
-                                className="text-xs font-bold text-slate-600 hover:text-slate-900"
+                                className="text-xs font-bold text-slate-300 hover:text-white"
                               >
                                 إغلاق
                               </button>

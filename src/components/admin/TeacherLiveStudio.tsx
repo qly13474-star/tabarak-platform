@@ -78,7 +78,7 @@ export const TeacherLiveStudio: React.FC = () => {
   const {
     db,
     liveSession,
-    supabaseAccessToken,
+    authAccessToken,
     getTrackName,
     startLiveBroadcast,
     endLiveBroadcast,
@@ -665,7 +665,7 @@ export const TeacherLiveStudio: React.FC = () => {
       const tokenRes = await requestLiveKitRoomToken({
         roomName: liveSession.id,
         courseId: liveSession.courseId,
-        accessToken: supabaseAccessToken,
+        accessToken: authAccessToken,
         role: 'admin',
       });
       if (cancelled) return;
@@ -711,7 +711,7 @@ export const TeacherLiveStudio: React.FC = () => {
       publishedAudioRef.current = null;
       setLivekitHostConnected(false);
     };
-  }, [liveSession.isLive, liveSession.id, liveSession.courseId, supabaseAccessToken, syncTracksToLiveKitRoom]);
+  }, [liveSession.isLive, liveSession.id, liveSession.courseId, authAccessToken, syncTracksToLiveKitRoom]);
 
   const handleEndBroadcast = () => {
     stopLocalMedia();
@@ -848,17 +848,17 @@ export const TeacherLiveStudio: React.FC = () => {
       {/* Studio Header + Direct Media Controls next to End Broadcast */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white">
             استوديو البث المباشر التفاعلي
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-400">
             إدارة البث المباشر ({livekitHostConnected ? 'متصل بسيرفر LiveKit الحي' : 'معاينة محلية حية · سعة 200 طالب'})، الكاميرا والصوت، مشاركة الملزمة والسبورة، والتحكم بمايكات الطلبة.
           </p>
         </div>
 
         {liveSession.isLive && (
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className="inline-flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3 min-h-[42px] text-xs font-bold text-red-700 tabular-nums">
+            <span className="inline-flex items-center gap-2 rounded-xl bg-rose-500/15 border border-rose-400/35 px-3 min-h-[42px] text-xs font-bold text-rose-300 tabular-nums">
               <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse" />
               <span>مباشر · {liveSession.connectedCount}/{liveSession.maxCapacity}</span>
             </span>
@@ -870,14 +870,14 @@ export const TeacherLiveStudio: React.FC = () => {
               disabled={isRequestingMedia}
               className={`min-h-[42px] inline-flex items-center gap-2 rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap border ${
                 cameraEnabled && hasVideoTrack
-                  ? 'bg-[#0F172A] border-[#0F172A] text-white hover:bg-slate-800'
-                  : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] border-purple-400 text-white hover:brightness-110'
+                  : 'bg-white/[0.06] border-purple-500/25 text-slate-200 hover:bg-white/15'
               }`}
             >
               {cameraEnabled && hasVideoTrack ? (
-                <Video className="h-4 w-4 text-[#D4AF37]" />
+                <Video className="h-4 w-4 text-purple-300" />
               ) : (
-                <VideoOff className="h-4 w-4 text-red-600" />
+                <VideoOff className="h-4 w-4 text-rose-400" />
               )}
               <span>{cameraEnabled && hasVideoTrack ? 'إيقاف الكاميرا' : 'تشغيل الكاميرا'}</span>
             </button>
@@ -890,13 +890,13 @@ export const TeacherLiveStudio: React.FC = () => {
               className={`min-h-[42px] inline-flex items-center gap-2 rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap border ${
                 micEnabled && hasAudioTrack
                   ? 'bg-emerald-700 border-emerald-700 text-white hover:bg-emerald-800'
-                  : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                  : 'bg-white/[0.06] border-purple-500/25 text-slate-200 hover:bg-white/15'
               }`}
             >
               {micEnabled && hasAudioTrack ? (
                 <Mic className="h-4 w-4 text-emerald-200" />
               ) : (
-                <MicOff className="h-4 w-4 text-red-600" />
+                <MicOff className="h-4 w-4 text-rose-400" />
               )}
               <span>{micEnabled && hasAudioTrack ? 'كتم المايك' : 'تشغيل المايك'}</span>
 
@@ -932,9 +932,9 @@ export const TeacherLiveStudio: React.FC = () => {
               onClick={() => void handleSwitchCamera()}
               disabled={isRequestingMedia || isSwitchingCamera || !hasVideoTrack}
               title="تبديل بين الكاميرا الأمامية والخلفية"
-              className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-300 px-3.5 text-xs font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap"
+              className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/25 px-3.5 text-xs font-bold text-slate-100 hover:bg-white/[0.08] disabled:opacity-50 whitespace-nowrap"
             >
-              <SwitchCamera className={`h-4 w-4 text-[#B48A1E] ${isSwitchingCamera ? 'animate-spin' : ''}`} />
+              <SwitchCamera className={`h-4 w-4 text-purple-300 ${isSwitchingCamera ? 'animate-spin' : ''}`} />
               <span>{facingMode === 'user' ? 'كاميرا خلفية' : 'كاميرا أمامية'}</span>
             </button>
 
@@ -954,9 +954,9 @@ export const TeacherLiveStudio: React.FC = () => {
       {notificationSentText && (
         <div
           role="status"
-          className="flex items-center gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-900"
+          className="flex items-center gap-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-sm font-semibold text-emerald-200"
         >
-          <BellRing className="h-4 w-4 text-emerald-600 shrink-0" />
+          <BellRing className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{notificationSentText}</span>
         </div>
       )}
@@ -965,18 +965,18 @@ export const TeacherLiveStudio: React.FC = () => {
       {!liveSession.isLive ? (
         <form
           onSubmit={handleStartLive}
-          className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 max-w-2xl space-y-5"
+          className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-6 sm:p-8 max-w-2xl space-y-5"
         >
           <div>
-            <h2 className="text-lg font-extrabold text-slate-900">بدء بث مباشر جديد</h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <h2 className="text-lg font-extrabold text-white">بدء بث مباشر جديد</h2>
+            <p className="text-xs text-slate-400 mt-1">
               اختر المرحلة والدورة ثم اضغط بدء لتشغيل الكاميرا والميكروفون مباشرة وإرسال إشعار فوري للطلبة.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="live-track" className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="live-track" className="block text-xs font-bold text-slate-200 mb-1.5">
                 المسار / المرحلة الدراسية
               </label>
               <select
@@ -990,7 +990,7 @@ export const TeacherLiveStudio: React.FC = () => {
                   setSelectedBranch('الجميع');
                   setSelectedSubject('');
                 }}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
               >
                 {db.tracks.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -1001,14 +1001,14 @@ export const TeacherLiveStudio: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="live-substage" className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="live-substage" className="block text-xs font-bold text-slate-200 mb-1.5">
                 الصف / المرحلة الفرعية
               </label>
               <select
                 id="live-substage"
                 value={selectedSubStage}
                 onChange={(e) => setSelectedSubStage(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
               >
                 <option value="جميع الصفوف">جميع صفوف المرحلة</option>
                 {(selectedTrackObj?.subStages ?? []).map((cls) => (
@@ -1021,14 +1021,14 @@ export const TeacherLiveStudio: React.FC = () => {
 
             {availableSpecs.length > 0 && (
               <div>
-                <label htmlFor="live-branch" className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label htmlFor="live-branch" className="block text-xs font-bold text-slate-200 mb-1.5">
                   {selectedTrackObj?.specializationLabel || 'الفرع / القسم'}
                 </label>
                 <select
                   id="live-branch"
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                  className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
                 >
                   <option value="الجميع">جميع الفروع والأقسام</option>
                   {availableSpecs.map((br) => (
@@ -1041,7 +1041,7 @@ export const TeacherLiveStudio: React.FC = () => {
             )}
 
             <div>
-              <label htmlFor="live-subject" className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="live-subject" className="block text-xs font-bold text-slate-200 mb-1.5">
                 المادة الدراسية (اختياري)
               </label>
               <input
@@ -1051,7 +1051,7 @@ export const TeacherLiveStudio: React.FC = () => {
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 placeholder="اختاري من مواد المرحلة أو اكتبيها..."
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
               />
               <datalist id="live-studio-subjects-list">
                 {availableSubjects.map((s) => (
@@ -1061,14 +1061,14 @@ export const TeacherLiveStudio: React.FC = () => {
             </div>
 
             <div className={availableSpecs.length > 0 ? 'sm:col-span-2' : ''}>
-              <label htmlFor="live-course" className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="live-course" className="block text-xs font-bold text-slate-200 mb-1.5">
                 الدورة المرتبطة (اختياري)
               </label>
               <select
                 id="live-course"
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
               >
                 <option value="">بث مباشر عام للمرحلة</option>
                 {trackCourses.map((c) => (
@@ -1081,7 +1081,7 @@ export const TeacherLiveStudio: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="live-title" className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label htmlFor="live-title" className="block text-xs font-bold text-slate-200 mb-1.5">
               عنوان جلسة البث المباشر
             </label>
             <input
@@ -1090,15 +1090,15 @@ export const TeacherLiveStudio: React.FC = () => {
               value={broadcastTitle}
               onChange={(e) => setBroadcastTitle(e.target.value)}
               placeholder="مثال: مراجعة الفصل الأول وحل الوزاريات"
-              className="w-full min-h-[46px] rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[46px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-4 text-sm text-white focus:border-purple-400 focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
-            className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
+            className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-6 py-3 text-sm font-bold text-white hover:brightness-110 transition-colors"
           >
-            <Radio className="h-4 w-4 text-[#D4AF37]" />
+            <Radio className="h-4 w-4 text-purple-300" />
             <span>بدء البث المباشر وإرسال إشعار فوري للطلاب</span>
           </button>
         </form>
@@ -1106,12 +1106,12 @@ export const TeacherLiveStudio: React.FC = () => {
         /* Active Live Studio Workspace */
         <div className="space-y-5">
           {/* 1. Real Teacher Live Video Preview Frame at Top of Studio */}
-          <div className="rounded-2xl overflow-hidden bg-[#080E1E] border border-slate-800 text-white shadow-sm">
+          <div className="rounded-2xl overflow-hidden bg-[#090712] border border-purple-500/20 text-white shadow-sm">
             {/* Hidden audio element used only when teacher enables self-monitor test */}
             <audio ref={selfMonitorAudioRef} autoPlay playsInline muted={!isAudioMonitoring} className="hidden" />
 
             {/* Video Preview Header Bar */}
-            <div className="px-4 sm:px-5 py-3 bg-[#0F172A] border-b border-white/10 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="px-4 sm:px-5 py-3 bg-[#110D1F] border-b border-purple-500/20 flex flex-wrap items-center justify-between gap-2.5 text-xs">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/20 border border-red-500/40 px-2.5 py-1 font-extrabold text-red-300">
                   <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -1124,7 +1124,7 @@ export const TeacherLiveStudio: React.FC = () => {
                     <span>بث حي متصل بـ LiveKit</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 border border-amber-400/30 px-2.5 py-1 font-bold text-amber-300">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 border border-purple-400/35 px-2.5 py-1 font-bold text-purple-300">
                     <WifiOff className="h-3.5 w-3.5" />
                     <span>معاينة محلية (Local Preview)</span>
                   </span>
@@ -1143,8 +1143,8 @@ export const TeacherLiveStudio: React.FC = () => {
                     title="استمعي لصوتك محلياً لفحص الميكروفون (يفضل استخدام سماعة لتجنب الصدى)"
                     className={`min-h-[34px] inline-flex items-center gap-1.5 rounded-lg px-3 text-[11px] font-bold transition-colors border ${
                       isAudioMonitoring
-                        ? 'bg-amber-400 border-amber-400 text-slate-950'
-                        : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                        ? 'bg-purple-500 border-amber-400 text-white'
+                        : 'bg-white/[0.06] border-purple-500/25 text-slate-200 hover:bg-purple-500/25'
                     }`}
                   >
                     <Headphones className="h-3.5 w-3.5" />
@@ -1156,7 +1156,7 @@ export const TeacherLiveStudio: React.FC = () => {
                   type="button"
                   onClick={() => void startLocalMedia(facingMode)}
                   disabled={isRequestingMedia}
-                  className="min-h-[34px] inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 text-[11px] font-bold text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                  className="min-h-[34px] inline-flex items-center gap-1.5 rounded-lg bg-white/[0.06] border border-purple-500/25 px-3 text-[11px] font-bold text-slate-200 hover:bg-purple-500/25 disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${isRequestingMedia ? 'animate-spin' : ''}`} />
                   <span>تحديث الكاميرا</span>
@@ -1194,14 +1194,14 @@ export const TeacherLiveStudio: React.FC = () => {
 
             {/* Partial Device Notice */}
             {mediaNotice && !mediaError && (
-              <div className="mx-4 sm:mx-5 mt-3 rounded-xl bg-amber-500/15 border border-amber-400/30 px-4 py-2.5 text-xs font-semibold text-amber-200">
+              <div className="mx-4 sm:mx-5 mt-3 rounded-xl bg-amber-500/15 border border-purple-400/35 px-4 py-2.5 text-xs font-semibold text-amber-200">
                 {mediaNotice}
               </div>
             )}
 
             {/* Live Video Viewport */}
             <div className="p-4 sm:p-5">
-              <div className="relative aspect-video max-h-[380px] w-full mx-auto overflow-hidden rounded-2xl bg-[#040814] border border-white/10">
+              <div className="relative aspect-video max-h-[380px] w-full mx-auto overflow-hidden rounded-2xl bg-[#090712] border border-purple-500/20">
                 <video
                   ref={videoPreviewRef}
                   autoPlay
@@ -1214,8 +1214,8 @@ export const TeacherLiveStudio: React.FC = () => {
 
                 {/* Loading State while awaiting browser permission */}
                 {isRequestingMedia && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#080E1E]/90 p-6 text-center">
-                    <RefreshCw className="h-8 w-8 text-[#D4AF37] animate-spin" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#090712]/90 p-6 text-center">
+                    <RefreshCw className="h-8 w-8 text-purple-300 animate-spin" />
                     <p className="text-sm font-extrabold text-white">
                       جاري طلب إذن الوصول إلى الكاميرا والميكروفون...
                     </p>
@@ -1227,9 +1227,9 @@ export const TeacherLiveStudio: React.FC = () => {
 
                 {/* Camera Off / Unavailable Overlay */}
                 {!isRequestingMedia && (!cameraEnabled || !hasVideoTrack) && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#0F172A] via-[#0B1224] to-[#040814] p-6 text-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/90 border border-white/10 text-slate-300">
-                      <VideoOff className="h-8 w-8 text-amber-400" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#1A1033] via-[#110D1F] to-[#090712] p-6 text-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/90 border border-purple-500/20 text-slate-300">
+                      <VideoOff className="h-8 w-8 text-purple-300" />
                     </div>
                     <div>
                       <p className="text-sm sm:text-base font-extrabold text-white">
@@ -1244,7 +1244,7 @@ export const TeacherLiveStudio: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => void handleToggleCamera()}
-                      className="mt-1 min-h-[40px] inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 text-xs font-extrabold text-slate-950 hover:bg-amber-400"
+                      className="mt-1 min-h-[40px] inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-4 text-xs font-extrabold text-white hover:bg-purple-500"
                     >
                       <Video className="h-4 w-4" />
                       <span>تشغيل الكاميرا الآن</span>
@@ -1257,7 +1257,7 @@ export const TeacherLiveStudio: React.FC = () => {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shrink-0" />
                     <span className="text-xs sm:text-sm font-extrabold text-white truncate">
-                      الأستاذة تبارك الأزيرجاوي
+                      الأستاذة تبارك الزيرجاوي
                     </span>
                     <span className="text-[11px] text-slate-300 hidden sm:inline truncate">
                       · {liveSession.title}
@@ -1265,7 +1265,7 @@ export const TeacherLiveStudio: React.FC = () => {
                   </div>
 
                   {/* Real-time Audio Level Meter Bar */}
-                  <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/90 border border-white/10 px-3 py-1.5">
+                  <div className="flex items-center gap-2.5 rounded-xl bg-slate-900/90 border border-purple-500/20 px-3 py-1.5">
                     {micEnabled && hasAudioTrack ? (
                       <Volume2 className="h-4 w-4 text-emerald-400 shrink-0" />
                     ) : (
@@ -1274,11 +1274,11 @@ export const TeacherLiveStudio: React.FC = () => {
                     <span className="text-[11px] font-bold text-slate-200 whitespace-nowrap">
                       {micEnabled && hasAudioTrack ? 'مستوى الصوت' : 'المايك مكتوم'}
                     </span>
-                    <div className="w-24 sm:w-32 h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="w-24 sm:w-32 h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-75 ${
                           audioLevel > 78
-                            ? 'bg-amber-400'
+                            ? 'bg-purple-500'
                             : audioLevel > 25
                               ? 'bg-emerald-400'
                               : 'bg-emerald-500/80'
@@ -1306,18 +1306,18 @@ export const TeacherLiveStudio: React.FC = () => {
             {/* Broadcast Stage & Presentation Controls */}
             <div className="xl:col-span-8 space-y-4">
               {/* Share Mode Toolbar */}
-              <div className="rounded-2xl bg-white border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => setLiveShareMode('slides')}
                     className={`min-h-[40px] inline-flex items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                       liveSession.shareMode === 'slides'
-                        ? 'bg-[#0F172A] text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-[#110D1F] text-white'
+                        : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                     }`}
                   >
-                    <Presentation className="h-4 w-4 text-[#D4AF37]" />
+                    <Presentation className="h-4 w-4 text-purple-300" />
                     <span>مشاركة الملزمة</span>
                   </button>
 
@@ -1326,11 +1326,11 @@ export const TeacherLiveStudio: React.FC = () => {
                     onClick={() => setLiveShareMode('whiteboard')}
                     className={`min-h-[40px] inline-flex items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                       liveSession.shareMode === 'whiteboard'
-                        ? 'bg-[#0F172A] text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-[#110D1F] text-white'
+                        : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                     }`}
                   >
-                    <PenTool className="h-4 w-4 text-[#D4AF37]" />
+                    <PenTool className="h-4 w-4 text-purple-300" />
                     <span>السبورة التفاعلية</span>
                   </button>
 
@@ -1339,11 +1339,11 @@ export const TeacherLiveStudio: React.FC = () => {
                     onClick={() => setLiveShareMode('screen')}
                     className={`min-h-[40px] inline-flex items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                       liveSession.shareMode === 'screen'
-                        ? 'bg-[#0F172A] text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-[#110D1F] text-white'
+                        : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                     }`}
                   >
-                    <MonitorPlay className="h-4 w-4 text-[#D4AF37]" />
+                    <MonitorPlay className="h-4 w-4 text-purple-300" />
                     <span>مشاركة الشاشة</span>
                   </button>
                 </div>
@@ -1351,7 +1351,7 @@ export const TeacherLiveStudio: React.FC = () => {
                 <button
                   type="button"
                   onClick={muteAllParticipants}
-                  className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-red-50 border border-red-200 px-3.5 text-xs font-bold text-red-700 hover:bg-red-100 whitespace-nowrap"
+                  className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-rose-500/15 border border-rose-400/35 px-3.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25 whitespace-nowrap"
                 >
                   <VolumeX className="h-4 w-4" />
                   <span>كتم صوت الجميع</span>
@@ -1359,19 +1359,19 @@ export const TeacherLiveStudio: React.FC = () => {
               </div>
 
               {/* Live Stage Monitor */}
-              <div className="rounded-2xl overflow-hidden bg-[#0F172A] border border-slate-800 text-white">
-                <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between text-xs">
+              <div className="rounded-2xl overflow-hidden bg-[#110D1F] border border-purple-500/20 text-white">
+                <div className="px-5 py-3 border-b border-purple-500/20 flex items-center justify-between text-xs">
                   <span className="font-bold text-white truncate">
                     {liveSession.title} · {getTrackName(liveSession.track)}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-amber-300 font-mono tabular-nums shrink-0">
+                  <span className="inline-flex items-center gap-1.5 text-purple-300 font-mono tabular-nums shrink-0">
                     <Users className="h-3.5 w-3.5" />
                     {liveSession.connectedCount}/{liveSession.maxCapacity}
                   </span>
                 </div>
 
                 {liveSession.shareMode === 'whiteboard' ? (
-                  <div className="p-4 space-y-3 bg-[#080E1E]">
+                  <div className="p-4 space-y-3 bg-[#090712]">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-400">لون القلم:</span>
@@ -1388,8 +1388,8 @@ export const TeacherLiveStudio: React.FC = () => {
                             onClick={() => setPenColor(p.color)}
                             className={`min-h-[34px] rounded-lg px-2.5 text-xs font-bold border ${
                               penColor === p.color
-                                ? 'border-amber-400 bg-slate-800 text-white'
-                                : 'border-slate-700 text-slate-400'
+                                ? 'border-amber-400 bg-white/[0.06] text-white'
+                                : 'border-purple-500/25 text-slate-400'
                             }`}
                           >
                             {p.label}
@@ -1399,7 +1399,7 @@ export const TeacherLiveStudio: React.FC = () => {
                       <button
                         type="button"
                         onClick={clearWhiteboard}
-                        className="min-h-[34px] inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+                        className="min-h-[34px] inline-flex items-center gap-1 rounded-lg bg-white/[0.06] px-3 text-xs font-semibold text-slate-200 hover:bg-purple-500/25"
                       >
                         <Eraser className="h-3.5 w-3.5" />
                         <span>مسح السبورة</span>
@@ -1413,23 +1413,23 @@ export const TeacherLiveStudio: React.FC = () => {
                       onPointerMove={handlePointerMove}
                       onPointerUp={handlePointerUp}
                       onPointerLeave={handlePointerUp}
-                      className="w-full h-[260px] sm:h-[340px] rounded-xl bg-[#0B1224] border border-slate-700 cursor-crosshair touch-none"
+                      className="w-full h-[260px] sm:h-[340px] rounded-xl bg-[#090712] border border-purple-500/25 cursor-crosshair touch-none"
                     />
                     <p className="text-[11px] text-slate-400">
                       ارسم أو اكتب المعادلات مباشرة على السبورة أعلاه — تظهر فوراً لطلبة البث.
                     </p>
                   </div>
                 ) : (
-                  <div className="p-6 sm:p-8 min-h-[300px] sm:min-h-[340px] flex flex-col justify-between bg-gradient-to-br from-[#0F172A] via-[#172542] to-[#080E1E]">
+                  <div className="p-6 sm:p-8 min-h-[300px] sm:min-h-[340px] flex flex-col justify-between bg-gradient-to-br from-[#1A1033] via-[#130C26] to-[#090712]">
                     <div className="space-y-3">
-                      <p className="text-xs font-semibold text-[#D4AF37]">{activeSlide.label}</p>
+                      <p className="text-xs font-semibold text-purple-300">{activeSlide.label}</p>
                       <h3 className="text-lg sm:text-2xl font-extrabold leading-snug">
                         {activeSlide.heading}
                       </h3>
                       <ul className="space-y-2 text-xs sm:text-sm text-slate-200 font-reading">
                         {activeSlide.bullets.map((b, idx) => (
                           <li key={idx} className="flex items-start gap-2">
-                            <span className="font-mono text-[#D4AF37] font-bold tabular-nums">
+                            <span className="font-mono text-purple-300 font-bold tabular-nums">
                               0{idx + 1}.
                             </span>
                             <span>{b}</span>
@@ -1438,21 +1438,21 @@ export const TeacherLiveStudio: React.FC = () => {
                       </ul>
                       <div
                         dir="ltr"
-                        className="inline-block rounded-xl bg-slate-950/75 border border-amber-400/30 px-4 py-2 font-mono text-xs sm:text-sm font-semibold text-[#F59E0B] tabular-nums"
+                        className="inline-block rounded-xl bg-slate-950/75 border border-purple-400/35 px-4 py-2 font-mono text-xs sm:text-sm font-semibold text-purple-300 tabular-nums"
                       >
                         {activeSlide.formula}
                       </div>
                     </div>
 
                     {/* Slide Switcher Controls */}
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <div className="mt-6 pt-4 border-t border-purple-500/20 flex items-center justify-between">
                       <button
                         type="button"
                         disabled={liveSession.activeSlideIndex === 0}
                         onClick={() =>
                           setLiveSlideIndex(Math.max(0, liveSession.activeSlideIndex - 1))
                         }
-                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3.5 text-xs font-bold text-white hover:bg-slate-700 disabled:opacity-40"
+                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-white/[0.06] px-3.5 text-xs font-bold text-white hover:bg-purple-500/25 disabled:opacity-40"
                       >
                         <ChevronRight className="h-4 w-4" />
                         <span>الشريحة السابقة</span>
@@ -1473,7 +1473,7 @@ export const TeacherLiveStudio: React.FC = () => {
                             )
                           )
                         }
-                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-[#D4AF37] px-3.5 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-40"
+                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-3.5 text-xs font-bold text-white hover:bg-purple-500 disabled:opacity-40"
                       >
                         <span>الشريحة التالية</span>
                         <ChevronLeft className="h-4 w-4" />
@@ -1484,27 +1484,27 @@ export const TeacherLiveStudio: React.FC = () => {
               </div>
 
               {/* Live Chat Reply Panel */}
-              <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-sm font-extrabold text-slate-900">دردشة القاعة المباشرة</h3>
-                  <span className="text-xs text-slate-500 tabular-nums">
+              <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+                <div className="px-4 py-3 border-b border-purple-500/15 flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-white">دردشة القاعة المباشرة</h3>
+                  <span className="text-xs text-slate-400 tabular-nums">
                     {liveSession.chatMessages.length} رسالة
                   </span>
                 </div>
-                <div className="max-h-52 overflow-y-auto p-4 space-y-2.5 bg-slate-50">
+                <div className="max-h-52 overflow-y-auto p-4 space-y-2.5 bg-white/[0.04]">
                   {liveSession.chatMessages.map((msg) => (
                     <div
                       key={msg.id}
                       className={`rounded-xl px-3.5 py-2.5 text-xs sm:text-sm ${
                         msg.senderRole === 'admin'
-                          ? 'bg-[#0F172A] text-white'
-                          : 'bg-white border border-slate-200 text-slate-800'
+                          ? 'bg-[#110D1F] text-white'
+                          : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-0.5">
                         <span
                           className={`font-bold text-xs ${
-                            msg.senderRole === 'admin' ? 'text-[#D4AF37]' : 'text-slate-900'
+                            msg.senderRole === 'admin' ? 'text-purple-300' : 'text-white'
                           }`}
                         >
                           {msg.senderName}
@@ -1517,17 +1517,17 @@ export const TeacherLiveStudio: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <form onSubmit={handleSendChat} className="p-3 border-t border-slate-200 flex gap-2">
+                <form onSubmit={handleSendChat} className="p-3 border-t border-purple-500/20 flex gap-2">
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="أرسلي رداً أو توجيهاً للطلاب في الدردشة..."
-                    className="flex-1 min-h-[42px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                    className="flex-1 min-h-[42px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] px-4 text-xs font-bold text-[#D4AF37] hover:bg-slate-800"
+                    className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-4 text-xs font-bold text-purple-300 hover:brightness-110"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>إرسال</span>
@@ -1537,11 +1537,11 @@ export const TeacherLiveStudio: React.FC = () => {
             </div>
 
             {/* Raised Hands Queue & Mic Control Column */}
-            <div className="xl:col-span-4 rounded-2xl bg-white border border-slate-200 overflow-hidden">
-              <div className="px-4 py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+            <div className="xl:col-span-4 rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+              <div className="px-4 py-4 border-b border-purple-500/15 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Hand className="h-4 w-4 text-[#B48A1E]" />
-                  <h2 className="text-sm font-extrabold text-slate-900">
+                  <Hand className="h-4 w-4 text-purple-300" />
+                  <h2 className="text-sm font-extrabold text-white">
                     الطلاب رافعو اليد ({raisedHandParticipants.length})
                   </h2>
                 </div>
@@ -1549,7 +1549,7 @@ export const TeacherLiveStudio: React.FC = () => {
                   type="button"
                   onClick={simulateIncomingRaiseHand}
                   title="محاكاة طلب مداخلة طالب جديد"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-slate-900 whitespace-nowrap"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-300 hover:text-white whitespace-nowrap"
                 >
                   <UserPlus className="h-3.5 w-3.5" />
                   <span>محاكاة طلب</span>
@@ -1557,19 +1557,19 @@ export const TeacherLiveStudio: React.FC = () => {
               </div>
 
               {raisedHandParticipants.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">
+                <div className="p-8 text-center text-xs text-slate-400">
                   لا يوجد طلاب رافعو اليد حالياً.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-purple-500/15">
                   {raisedHandParticipants.map((student) => (
                     <div
                       key={student.id}
-                      className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50"
+                      className="p-4 flex items-center justify-between gap-3 hover:bg-white/[0.08]"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{student.name}</p>
-                        <p className="text-[11px] text-slate-500 font-mono tabular-nums" dir="ltr">
+                        <p className="text-sm font-bold text-white truncate">{student.name}</p>
+                        <p className="text-[11px] text-slate-400 font-mono tabular-nums" dir="ltr">
                           {student.phone} · {student.micAllowed ? 'يتحدث الآن' : 'بانتظار الإذن'}
                         </p>
                       </div>
@@ -1579,7 +1579,7 @@ export const TeacherLiveStudio: React.FC = () => {
                         onClick={() => toggleParticipantMic(student.id)}
                         className={`min-h-[40px] inline-flex items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
                           student.micAllowed
-                            ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                            ? 'bg-rose-500/15 text-rose-300 border border-rose-400/35 hover:bg-rose-500/25'
                             : 'bg-emerald-600 text-white hover:bg-emerald-700'
                         }`}
                       >

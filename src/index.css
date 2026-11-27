@@ -1,109 +1,145 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
-  --font-reading: "Tajawal", "Cairo", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
-
-  --color-navy-950: #080E1E;
-  --color-navy-900: #0F172A;
-  --color-navy-800: #1E293B;
-  --color-navy-700: #334155;
-  --color-gold-600: #B48A1E;
-  --color-gold-500: #D4AF37;
-  --color-gold-400: #F59E0B;
-  --color-gold-100: #FEF3C7;
+  --font-sans: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-obsidian-950: #090712;
+  --color-obsidian-900: #110D1F;
+  --color-obsidian-850: #161029;
+  --color-violet-brand: #7C3AED;
+  --color-purple-glow: #A855F7;
+  --color-lavender-soft: #C084FC;
 }
 
 @layer base {
   html {
-    font-family: var(--font-sans);
+    font-family: 'Cairo', 'Tajawal', sans-serif;
     direction: rtl;
-    text-align: right;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-text-size-adjust: 100%;
-    overflow-x: hidden;
-    max-width: 100%;
+    scroll-behavior: smooth;
+    background-color: #090712;
+    color: #ffffff;
+    color-scheme: dark;
   }
 
   body {
-    overflow-x: hidden;
-    max-width: 100%;
-    min-height: 100vh;
+    background-color: #090712;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.22), transparent 65%),
+      radial-gradient(ellipse 60% 45% at 95% 25%, rgba(168, 85, 247, 0.12), transparent 60%),
+      radial-gradient(ellipse 55% 45% at 5% 85%, rgba(192, 132, 252, 0.09), transparent 60%);
+    background-attachment: fixed;
+    color: #ffffff;
     min-height: 100dvh;
-    overscroll-behavior-x: none;
-  }
-
-  #root {
-    min-height: 100vh;
-    min-height: 100dvh;
-    max-width: 100%;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  h1, h2, h3 {
-    text-wrap: balance;
+  /* Ensure native select dropdowns stay legible in dark luxury theme */
+  select option,
+  select optgroup {
+    background-color: #110D1F;
+    color: #F8FAFC;
   }
-}
 
-/* Prevent iOS Safari auto-zoom when focusing inputs/selects/textareas on touch devices */
-@media screen and (max-width: 768px) {
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="date"]),
-  select,
-  textarea {
-    font-size: 16px !important;
+  /* Subtle dark-purple scrollbars */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
   }
-}
-
-.font-reading {
-  font-family: var(--font-reading);
+  ::-webkit-scrollbar-track {
+    background: #090712;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(192, 132, 252, 0.55);
+  }
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-.pb-safe {
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+/* Luxury Purple Glassmorphism utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  box-shadow: 0 12px 36px -12px rgba(9, 7, 18, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
+.glass-card-hover {
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease;
 }
 
-.px-safe {
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
+.glass-card-hover:hover {
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 16px 42px -12px rgba(124, 58, 237, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
 }
 
-/* Deter accidental text selection or dragging inside protected media & PDF areas */
-.protected-surface {
+.glass-panel {
+  background: rgba(17, 13, 31, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: #ffffff;
+}
+
+.glass-input::placeholder {
+  color: #94a3b8;
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.22);
+}
+
+.btn-purple-glow {
+  background-image: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c026d3 100%);
+  box-shadow: 0 8px 26px -6px rgba(147, 51, 234, 0.65), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+  transition: all 200ms ease;
+}
+
+.btn-purple-glow:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 32px -6px rgba(168, 85, 247, 0.8), inset 0 1px 0 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Anti-piracy protection for protected video & PDF containers */
+.protected-media {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
 @media print {
-  .protected-surface {
+  .no-print {
     display: none !important;
   }
 }
 
-/* Subtle custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@keyframes tabarakShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.55);
+.animate-purple-gradient {
+  background-size: 200% 200%;
+  animation: tabarakShimmer 7s ease infinite;
 }

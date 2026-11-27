@@ -150,19 +150,19 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
       {/* Phase 1: Pre-Start Intro + Preview Leaderboard */}
       {phase === 'intro' && (
         <div className="space-y-5">
-          <div className="rounded-2xl bg-[#0F172A] text-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="rounded-2xl bg-[#110D1F] text-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2.5 max-w-2xl">
               {onBack && (
                 <div className="mb-2">
                   <BackButton onClick={onBack} label="رجوع" variant="dark" size="sm" />
                 </div>
               )}
-              <p className="text-xs font-bold text-[#D4AF37]">اختبار إلكتروني مؤقّت مع تصحيح فوري</p>
+              <p className="text-xs font-bold text-purple-300">اختبار إلكتروني مؤقّت مع تصحيح فوري</p>
               <h3 className="text-xl sm:text-2xl font-extrabold leading-snug">{quiz.title}</h3>
               <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-slate-300 pt-1">
                 <span className="tabular-nums">{totalQuestions} أسئلة اختيار من متعدد</span>
                 <span aria-hidden="true">·</span>
-                <span className="inline-flex items-center gap-1.5 text-amber-300 font-bold tabular-nums">
+                <span className="inline-flex items-center gap-1.5 text-purple-300 font-bold tabular-nums">
                   <Clock className="h-4 w-4" />
                   مدة الكوز: {quiz.timeLimitMinutes} دقائق
                 </span>
@@ -178,7 +178,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
               <button
                 type="button"
                 onClick={handleStartQuiz}
-                className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-6 py-3 text-sm font-extrabold text-slate-950 hover:brightness-105 transition-all whitespace-nowrap"
+                className="min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-6 py-3 text-sm font-extrabold text-white hover:brightness-105 transition-all whitespace-nowrap"
               >
                 <Play className="h-4 w-4 fill-slate-950" />
                 <span>{myPreviousAttempt ? 'إعادة الكوز ورفع المستوى' : 'بدء الكوز الآن'}</span>
@@ -188,7 +188,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setPhase('result')}
-                  className="min-h-[42px] rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-bold text-white hover:bg-white/10 whitespace-nowrap"
+                  className="min-h-[42px] rounded-xl border border-purple-500/25 bg-white/5 px-4 text-xs font-bold text-white hover:bg-white/10 whitespace-nowrap"
                 >
                   عرض نتيجتي السابقة ({myPreviousAttempt.percentage}%)
                 </button>
@@ -211,7 +211,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
       {phase === 'active' && (
         <div className="space-y-5">
           {/* Sticky Countdown Timer Header */}
-          <div className="sticky top-16 z-20 rounded-2xl bg-[#0F172A] text-white p-4 sm:p-5 shadow-lg border border-slate-800 space-y-3">
+          <div className="sticky top-16 z-20 rounded-2xl bg-[#110D1F] text-white p-4 sm:p-5 shadow-lg border border-purple-500/20 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <BackButton
@@ -233,8 +233,8 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                   isTimeCritical
                     ? 'bg-red-600 text-white'
                     : isTimeLow
-                      ? 'bg-amber-500 text-slate-950'
-                      : 'bg-slate-800 text-[#D4AF37]'
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-white/[0.06] text-purple-300'
                 }`}
                 dir="ltr"
               >
@@ -244,14 +244,14 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
             </div>
 
             {/* Linear Time Progress Bar */}
-            <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
               <div
                 className={`h-full transition-all duration-700 ${
                   isTimeCritical
                     ? 'bg-red-500'
                     : isTimeLow
-                      ? 'bg-amber-400'
-                      : 'bg-[#D4AF37]'
+                      ? 'bg-purple-500'
+                      : 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600'
                 }`}
                 style={{ width: `${timeProgressPercent}%` }}
               />
@@ -266,18 +266,18 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
               return (
                 <div
                   key={q.id}
-                  className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4"
+                  className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">
-                      <span className="font-mono text-[#B48A1E] ml-2 tabular-nums">
+                    <p className="text-sm sm:text-base font-bold text-white leading-relaxed">
+                      <span className="font-mono text-purple-300 ml-2 tabular-nums">
                         {String(qIdx + 1).padStart(2, '0')}.
                       </span>
                       {q.question}
                     </p>
                     {isQuestionLocked && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 whitespace-nowrap shrink-0">
-                        <Lock className="h-3.5 w-3.5 text-[#B48A1E]" />
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 whitespace-nowrap shrink-0">
+                        <Lock className="h-3.5 w-3.5 text-purple-300" />
                         <span>إجابة مقفلة</span>
                       </span>
                     )}
@@ -302,10 +302,10 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                           }
                           className={`min-h-[48px] flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-right text-sm transition-colors disabled:cursor-not-allowed ${
                             isSelected
-                              ? 'border-[#0F172A] bg-[#0F172A] text-white font-bold'
+                              ? 'border-purple-400 bg-[#110D1F] text-white font-bold'
                               : isQuestionLocked
-                                ? 'border-slate-200 bg-slate-50/70 text-slate-400'
-                                : 'border-slate-200 bg-slate-50 text-slate-800 hover:border-[#0F172A] hover:bg-white'
+                                ? 'border-purple-500/20 bg-white/[0.035] text-slate-400'
+                                : 'border-purple-500/20 bg-white/[0.04] text-slate-100 hover:border-purple-400/60 hover:bg-white/15'
                           }`}
                         >
                           <span>{opt}</span>
@@ -322,14 +322,14 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
           </div>
 
           {/* Submit Footer */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-slate-600 tabular-nums">
+          <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-slate-300 tabular-nums">
               الإجابات المختارة: {answeredCount} من {totalQuestions}
             </span>
             <button
               type="button"
               onClick={() => finalizeAndSubmit(false, remainingSeconds)}
-              className="w-full sm:w-auto min-h-[48px] rounded-xl bg-[#0F172A] px-6 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
+              className="w-full sm:w-auto min-h-[48px] rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-6 py-3 text-sm font-bold text-white hover:brightness-110 transition-colors"
             >
               تسليم الإجابات وإظهار النتيجة والمستوى
             </button>
@@ -344,7 +344,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
           {activeResult.autoSubmitted && (
             <div
               role="status"
-              className="flex items-center gap-2.5 rounded-xl bg-amber-50 border border-amber-300 px-4 py-3 text-xs sm:text-sm font-bold text-amber-950"
+              className="flex items-center gap-2.5 rounded-xl bg-amber-500/15 border border-amber-400/40 px-4 py-3 text-xs sm:text-sm font-bold text-amber-950"
             >
               <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
               <span>
@@ -358,14 +358,14 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
             const evaluation = getGradeEvaluation(activeResult.percentage);
             const myLevel = myRankIndex >= 0 ? getLevelLabel(myRankIndex) : null;
             return (
-              <div className="rounded-2xl bg-gradient-to-l from-[#0F172A] via-[#1B2B4B] to-[#0F172A] text-white p-6 sm:p-8 border border-[#D4AF37]/40 space-y-6">
+              <div className="rounded-2xl bg-gradient-to-l from-[#1A1033] via-[#130C26] to-[#0E091D] text-white p-6 sm:p-8 border border-purple-400/40 space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4AF37]/20 text-[#D4AF37] shrink-0">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-300 shrink-0">
                       <Award className="h-8 w-8" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-[#D4AF37]">
+                      <p className="text-xs font-bold text-purple-300">
                         نتيجة التصحيح التلقائي · {quiz.title}
                       </p>
                       <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold">
@@ -380,7 +380,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                   <button
                     type="button"
                     onClick={handleStartQuiz}
-                    className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-extrabold text-slate-950 hover:bg-amber-400 transition-colors whitespace-nowrap shrink-0"
+                    className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 py-2.5 text-sm font-extrabold text-white hover:bg-purple-500 transition-colors whitespace-nowrap shrink-0"
                   >
                     <RotateCcw className="h-4 w-4" />
                     <span>إعادة المحاولة</span>
@@ -388,7 +388,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                 </div>
 
                 {/* 4 Clean Result Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-white/10">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-purple-500/20">
                   <div className="rounded-xl bg-white/5 p-4">
                     <span className="block text-[11px] text-slate-400">الإجابات الصحيحة</span>
                     <strong className="mt-1 block font-mono text-2xl font-extrabold text-white tabular-nums">
@@ -398,7 +398,7 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
 
                   <div className="rounded-xl bg-white/5 p-4">
                     <span className="block text-[11px] text-slate-400">النسبة المئوية</span>
-                    <strong className="mt-1 block font-mono text-2xl font-extrabold text-[#F59E0B] tabular-nums">
+                    <strong className="mt-1 block font-mono text-2xl font-extrabold text-purple-300 tabular-nums">
                       {activeResult.percentage}%
                     </strong>
                   </div>
@@ -435,10 +435,10 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
           {lastSubmittedAttempt && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-base font-extrabold text-slate-900">
+                <h4 className="text-base font-extrabold text-white">
                   مراجعة الإجابات النموذجية
                 </h4>
-                <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <Lock className="h-3.5 w-3.5" />
                   <span>مغلقة بعد التسليم</span>
                 </span>
@@ -450,19 +450,19 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                 return (
                   <div
                     key={q.id}
-                    className="rounded-2xl bg-white border border-slate-200 p-5 space-y-3"
+                    className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 space-y-3"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-bold text-slate-900 leading-relaxed">
-                        <span className="font-mono text-[#B48A1E] ml-2 tabular-nums">
+                      <p className="text-sm font-bold text-white leading-relaxed">
+                        <span className="font-mono text-purple-300 ml-2 tabular-nums">
                           {String(qIdx + 1).padStart(2, '0')}.
                         </span>
                         {q.question}
                       </p>
                       {isCorrect ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-600 shrink-0" />
+                        <XCircle className="h-5 w-5 text-rose-400 shrink-0" />
                       )}
                     </div>
 
@@ -475,10 +475,10 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                             key={optIdx}
                             className={`rounded-xl border px-3.5 py-2.5 flex items-center justify-between ${
                               isRightOpt
-                                ? 'border-emerald-500 bg-emerald-50 text-emerald-950 font-bold'
+                                ? 'border-emerald-500 bg-emerald-500/15 text-emerald-200 font-bold'
                                 : isChosenWrong
-                                  ? 'border-red-400 bg-red-50 text-red-900 font-semibold'
-                                  : 'border-slate-200 bg-slate-50 text-slate-600'
+                                  ? 'border-red-400 bg-rose-500/15 text-red-900 font-semibold'
+                                  : 'border-purple-500/20 bg-white/[0.04] text-slate-300'
                             }`}
                           >
                             <span>{opt}</span>
@@ -491,8 +491,8 @@ export const CourseQuizView: React.FC<CourseQuizViewProps> = ({
                     </div>
 
                     {q.explanation && (
-                      <p className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-xs text-slate-700 font-reading">
-                        <strong className="font-sans text-slate-900 ml-1">التوضيح:</strong>
+                      <p className="rounded-xl bg-white/[0.04] border border-purple-500/20 px-4 py-2.5 text-xs text-slate-200 font-reading">
+                        <strong className="font-sans text-white ml-1">التوضيح:</strong>
                         {q.explanation}
                       </p>
                     )}
@@ -519,19 +519,19 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
   title,
 }) => {
   return (
-    <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+    <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+      <div className="px-5 py-4 border-b border-purple-500/15 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <Trophy className="h-5 w-5 text-[#B48A1E] shrink-0" />
-          <h4 className="text-sm sm:text-base font-extrabold text-slate-900">{title}</h4>
+          <Trophy className="h-5 w-5 text-purple-300 shrink-0" />
+          <h4 className="text-sm sm:text-base font-extrabold text-white">{title}</h4>
         </div>
-        <span className="text-xs text-slate-500 tabular-nums">{leaderboard.length} طلاب</span>
+        <span className="text-xs text-slate-400 tabular-nums">{leaderboard.length} طلاب</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-right border-collapse text-sm">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-500">
+            <tr className="border-b border-purple-500/15 bg-white/[0.04] text-xs font-bold text-slate-400">
               <th className="py-3 px-4">الترتيب / المستوى</th>
               <th className="py-3 px-4">اسم الطالب الثلاثي</th>
               <th className="py-3 px-4">الدرجة</th>
@@ -539,7 +539,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
               <th className="py-3 px-4 text-left">الوقت</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-purple-500/15">
             {leaderboard.map((entry, idx) => {
               const level = getLevelLabel(idx);
               const isMe = entry.studentId === currentStudentId;
@@ -547,30 +547,30 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
                 <tr
                   key={entry.id}
                   className={
-                    isMe ? 'bg-amber-50/80 font-bold' : idx < 3 ? 'bg-slate-50/40' : 'hover:bg-slate-50'
+                    isMe ? 'bg-amber-500/12 font-bold' : idx < 3 ? 'bg-white/[0.035]' : 'hover:bg-white/[0.08]'
                   }
                 >
                   <td className="py-3.5 px-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-slate-900">
+                    <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white">
                       <span>{level.label}</span>
                       {level.medal && <span aria-hidden="true">{level.medal}</span>}
                     </span>
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="text-xs sm:text-sm font-bold text-slate-900">
+                    <span className="text-xs sm:text-sm font-bold text-white">
                       {entry.studentName}
                     </span>
                     {isMe && (
-                      <span className="mr-2 text-[11px] font-bold text-[#B48A1E]">(أنت)</span>
+                      <span className="mr-2 text-[11px] font-bold text-purple-300">(أنت)</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-xs text-slate-700 tabular-nums whitespace-nowrap" dir="ltr">
+                  <td className="py-3.5 px-4 font-mono text-xs text-slate-200 tabular-nums whitespace-nowrap" dir="ltr">
                     {entry.score}/{entry.total}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-sm font-extrabold text-[#0F172A] tabular-nums whitespace-nowrap">
+                  <td className="py-3.5 px-4 font-mono text-sm font-extrabold text-white tabular-nums whitespace-nowrap">
                     {entry.percentage}%
                   </td>
-                  <td className="py-3.5 px-4 text-left font-mono text-xs text-slate-500 tabular-nums whitespace-nowrap" dir="ltr">
+                  <td className="py-3.5 px-4 text-left font-mono text-xs text-slate-400 tabular-nums whitespace-nowrap" dir="ltr">
                     {formatDurationMMSS(entry.timeSpentSeconds)}
                   </td>
                 </tr>

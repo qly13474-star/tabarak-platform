@@ -107,19 +107,19 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="rounded-2xl overflow-hidden bg-[#0F172A] border border-slate-800 shadow-sm">
-      <PrivacyGuard active={true} className="relative aspect-video w-full bg-[#080E1E]">
+    <div ref={containerRef} className="rounded-2xl overflow-hidden bg-[#110D1F] border border-purple-500/20 shadow-sm">
+      <PrivacyGuard active={true} className="relative aspect-video w-full bg-[#090712]">
         {/* Dynamic moving watermark (student name + Iraqi phone every 10s) */}
         <DynamicWatermark studentName={studentName} studentPhone={studentPhone} variant="dark" />
 
         {/* Protected Interactive Lecture Canvas */}
-        <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-8 bg-gradient-to-br from-[#0F172A] via-[#142038] to-[#080E1E] text-white">
+        <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-8 bg-gradient-to-br from-[#1A1033] via-[#130C26] to-[#090712] text-white">
           {/* Top lecture bar */}
           <div className="flex items-center justify-between gap-3 text-xs text-slate-300">
             <div className="flex items-center gap-2.5 min-w-0">
               {onBack && <BackButton onClick={onBack} label="رجوع" variant="dark" size="sm" />}
-              <span className="font-semibold text-[#D4AF37] truncate">
-                منصة الأستاذة تبارك الأزيرجاوي · مشغّل محمي
+              <span className="font-semibold text-purple-300 truncate">
+                منصة الأستاذة تبارك الزيرجاوي · مشغّل محمي
               </span>
             </div>
             <span className="font-mono text-[11px] text-slate-400 tabular-nums shrink-0" dir="ltr">
@@ -141,7 +141,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
             {activeSlide.formula && (
               <div
                 dir="ltr"
-                className="mt-4 inline-block rounded-xl bg-slate-950/75 border border-amber-400/30 px-4 py-2.5 font-mono text-xs sm:text-base font-semibold text-[#F59E0B] tabular-nums"
+                className="mt-4 inline-block rounded-xl bg-slate-950/75 border border-purple-400/35 px-4 py-2.5 font-mono text-xs sm:text-base font-semibold text-purple-300 tabular-nums"
               >
                 {activeSlide.formula}
               </div>
@@ -156,7 +156,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               aria-label="تشغيل المحاضرة"
               className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/35 transition-colors hover:bg-slate-950/20"
             >
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#D4AF37] text-slate-950 shadow-xl transition-transform hover:scale-105">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 text-white shadow-xl transition-transform hover:scale-105">
                 <Play className="h-7 w-7 fill-slate-950 mr-0.5" />
               </span>
             </button>
@@ -165,7 +165,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
           {/* Bottom indicator */}
           <div className="flex items-center justify-between text-[11px] text-slate-400">
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
+              <ShieldCheck className="h-3.5 w-3.5 text-purple-300" />
               <span>محمي بالعلامة المائية المتحركة</span>
             </span>
             <span className="font-mono tabular-nums" dir="ltr">
@@ -176,7 +176,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
       </PrivacyGuard>
 
       {/* Player Control Strip */}
-      <div className="bg-[#0F172A] px-4 py-3 text-white space-y-2.5">
+      <div className="bg-[#110D1F] px-4 py-3 text-white space-y-2.5">
         {/* Seek Bar */}
         <div className="flex items-center gap-3" dir="ltr">
           <span className="font-mono text-[11px] text-slate-400 tabular-nums w-10">
@@ -189,7 +189,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
             value={Math.floor(currentTime)}
             onChange={(e) => setCurrentTime(Number(e.target.value))}
             aria-label="شريط تقدم المحاضرة"
-            className="flex-1 h-1.5 accent-[#D4AF37] cursor-pointer"
+            className="flex-1 h-1.5 accent-purple-500 cursor-pointer"
           />
           <span className="font-mono text-[11px] text-slate-400 tabular-nums w-10 text-right">
             {lesson.duration}
@@ -202,7 +202,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
             <button
               type="button"
               onClick={() => setIsPlaying((p) => !p)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37] text-slate-950 hover:bg-amber-400 transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 text-white hover:bg-purple-500 transition-colors"
               aria-label={isPlaying ? 'إيقاف مؤقت' : 'تشغيل'}
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-slate-950" />}
@@ -212,7 +212,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               type="button"
               onClick={() => handleSkip(-15)}
               title="ترجيع 15 ثانية"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:brightness-110 hover:text-white"
             >
               <RotateCcw className="h-4 w-4" />
             </button>
@@ -221,7 +221,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               type="button"
               onClick={() => handleSkip(15)}
               title="تقديم 15 ثانية"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:brightness-110 hover:text-white"
             >
               <RotateCw className="h-4 w-4" />
             </button>
@@ -230,7 +230,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               type="button"
               onClick={() => setMuted((m) => !m)}
               aria-label={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:brightness-110 hover:text-white"
             >
               {muted ? <VolumeX className="h-4 w-4 text-red-400" /> : <Volume2 className="h-4 w-4" />}
             </button>
@@ -240,7 +240,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
             <button
               type="button"
               onClick={cycleSpeed}
-              className="min-h-[38px] rounded-lg bg-slate-800 px-2.5 font-mono text-xs font-semibold text-amber-300 hover:bg-slate-700 tabular-nums"
+              className="min-h-[38px] rounded-lg bg-white/[0.06] px-2.5 font-mono text-xs font-semibold text-purple-300 hover:bg-purple-500/25 tabular-nums"
               dir="ltr"
             >
               {speed}x
@@ -251,7 +251,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               onChange={(e) => setQuality(e.target.value as '1080p' | '720p' | '480p')}
               aria-label="جودة العرض"
               dir="ltr"
-              className="min-h-[38px] rounded-lg bg-slate-800 px-2 font-mono text-xs font-medium text-slate-200 border border-slate-700 focus:outline-none"
+              className="min-h-[38px] rounded-lg bg-white/[0.06] px-2 font-mono text-xs font-medium text-slate-200 border border-purple-500/25 focus:outline-none"
             >
               <option value="1080p">1080p HD</option>
               <option value="720p">720p</option>
@@ -264,7 +264,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               className={`min-h-[38px] inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors whitespace-nowrap ${
                 isWatched
                   ? 'bg-emerald-500/20 text-emerald-300'
-                  : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                  : 'bg-white/[0.06] text-slate-200 hover:bg-purple-500/25'
               }`}
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -275,7 +275,7 @@ export const RecordedVideoPlayer: React.FC<RecordedVideoPlayerProps> = ({
               type="button"
               onClick={handleToggleFullscreen}
               aria-label="ملء الشاشة"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-300 hover:brightness-110 hover:text-white"
             >
               <Maximize className="h-4 w-4" />
             </button>

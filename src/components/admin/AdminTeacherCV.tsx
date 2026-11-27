@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { usePlatform } from '../../context/PlatformContext';
 import { IRAQ_GOVERNORATES } from '../../utils/store';
+import { SecurityPinModal } from './SecurityPinModal';
 
 export const AdminTeacherCV: React.FC = () => {
   const { db, updateTeacherCV } = usePlatform();
@@ -40,6 +41,11 @@ export const AdminTeacherCV: React.FC = () => {
   const [instagram, setInstagram] = useState(cv.instagram ?? '');
   const [facebook, setFacebook] = useState(cv.facebook ?? '');
   const [savedNotice, setSavedNotice] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    type: 'subject' | 'achievement';
+    index: number;
+    label: string;
+  } | null>(null);
 
   const handleAddSubject = () => {
     const trimmed = newSubjectInput.trim();
@@ -49,7 +55,11 @@ export const AdminTeacherCV: React.FC = () => {
   };
 
   const handleRemoveSubject = (index: number) => {
-    setSubjectsTaught((prev) => prev.filter((_, i) => i !== index));
+    setPendingDelete({
+      type: 'subject',
+      index,
+      label: subjectsTaught[index] ?? 'المادة الدراسية',
+    });
   };
 
   const handleAddAchievement = () => {
@@ -60,13 +70,27 @@ export const AdminTeacherCV: React.FC = () => {
   };
 
   const handleRemoveAchievement = (index: number) => {
-    setAchievements((prev) => prev.filter((_, i) => i !== index));
+    setPendingDelete({
+      type: 'achievement',
+      index,
+      label: achievements[index] ?? 'الإنجاز',
+    });
+  };
+
+  const handleConfirmPendingDelete = () => {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === 'subject') {
+      setSubjectsTaught((prev) => prev.filter((_, i) => i !== pendingDelete.index));
+    } else {
+      setAchievements((prev) => prev.filter((_, i) => i !== pendingDelete.index));
+    }
+    setPendingDelete(null);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateTeacherCV({
-      fullName: fullName || 'تبارك الأزيرجاوي',
+      fullName: fullName || 'تبارك الزيرجاوي',
       academicTitle,
       specialization,
       subjectsTaught,
@@ -93,19 +117,19 @@ export const AdminTeacherCV: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-extrabold text-[#B48A1E]">
+          <p className="text-xs font-extrabold text-purple-300">
             الصفحة التعريفية للأستاذة في تطبيق الطالب
           </p>
-          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900">
+          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-white">
             إدارة السيرة الذاتية (CV)
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
             عدّلي جميع بياناتك الأكاديمية، العنوان، الإنجازات، وروابط التواصل لتظهر فوراً لجميع الطلاب من القائمة المنسدلة.
           </p>
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-400">
           آخر تحديث:{' '}
-          <strong className="font-mono text-slate-900" dir="ltr">
+          <strong className="font-mono text-white" dir="ltr">
             {cv.updatedAt}
           </strong>
         </div>
@@ -114,7 +138,7 @@ export const AdminTeacherCV: React.FC = () => {
       {savedNotice && (
         <div
           role="status"
-          className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3.5 text-sm font-bold text-emerald-900"
+          className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3.5 text-sm font-bold text-emerald-200"
         >
           <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
           <span>
@@ -125,17 +149,17 @@ export const AdminTeacherCV: React.FC = () => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Section 1: Basic Identity & Experience */}
-        <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <GraduationCap className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-purple-500/15 pb-3">
+            <GraduationCap className="h-5 w-5 text-purple-300" />
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
               المعلومات الأساسية والخبرة التدريسية
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 الاسم الكامل
               </label>
               <input
@@ -143,13 +167,13 @@ export const AdminTeacherCV: React.FC = () => {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="تبارك الأزيرجاوي"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                placeholder="تبارك الزيرجاوي"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 اللقب العلمي والصفة الأكاديمية
               </label>
               <input
@@ -158,12 +182,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={academicTitle}
                 onChange={(e) => setAcademicTitle(e.target.value)}
                 placeholder="أستاذة وباحثة أكاديمية متخصصة..."
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 العمر
               </label>
               <input
@@ -171,12 +195,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 placeholder="مثال: 31 سنة"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 سنوات الخبرة في التدريس
               </label>
               <input
@@ -184,24 +208,24 @@ export const AdminTeacherCV: React.FC = () => {
                 value={yearsExperience}
                 onChange={(e) => setYearsExperience(e.target.value)}
                 placeholder="مثال: 9 سنوات في التدريس الحضوري والإلكتروني"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
           </div>
         </section>
 
         {/* Section 2: Specialization, Degree & Subjects Taught */}
-        <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Award className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-purple-500/15 pb-3">
+            <Award className="h-5 w-5 text-purple-300" />
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
               الشهادة الجامعية والاختصاص والمواد الدراسية
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 الاختصاص الدقيق
               </label>
               <input
@@ -209,12 +233,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
                 placeholder="علوم الحاسوب والرياضيات التطبيقية..."
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 الشهادة الجامعية
               </label>
               <input
@@ -222,13 +246,13 @@ export const AdminTeacherCV: React.FC = () => {
                 value={degree}
                 onChange={(e) => setDegree(e.target.value)}
                 placeholder="ماجستير علوم الحاسوب — جامعة بغداد"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+            <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
               المؤهلات العلمية والشهادات التدريبية
             </label>
             <textarea
@@ -236,14 +260,14 @@ export const AdminTeacherCV: React.FC = () => {
               value={qualifications}
               onChange={(e) => setQualifications(e.target.value)}
               placeholder="اكتبي تفاصيل البكالوريوس والماجستير وشهادات طرائق التدريس..."
-              className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none font-reading"
+              className="w-full rounded-xl border border-purple-500/25 px-3.5 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none font-reading"
             />
           </div>
 
           {/* Subjects Taught List */}
           <div className="space-y-2.5">
-            <label className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
-              <BookOpen className="h-3.5 w-3.5 text-[#B48A1E]" />
+            <label className="flex items-center gap-1.5 text-xs font-extrabold text-slate-200">
+              <BookOpen className="h-3.5 w-3.5 text-purple-300" />
               <span>المواد التي تدرّسها الأستاذة ({subjectsTaught.length})</span>
             </label>
 
@@ -259,14 +283,14 @@ export const AdminTeacherCV: React.FC = () => {
                   }
                 }}
                 placeholder="أضيفي مادة جديدة (مثلاً: قواعد اللغة الإنجليزية — الثالث متوسط)"
-                className="flex-1 min-h-[42px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="flex-1 min-h-[42px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleAddSubject}
-                className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] px-4 text-xs font-extrabold text-white hover:bg-slate-800 whitespace-nowrap"
+                className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-4 text-xs font-extrabold text-white hover:brightness-110 whitespace-nowrap"
               >
-                <Plus className="h-4 w-4 text-[#D4AF37]" />
+                <Plus className="h-4 w-4 text-purple-300" />
                 <span>إضافة</span>
               </button>
             </div>
@@ -276,7 +300,7 @@ export const AdminTeacherCV: React.FC = () => {
                 {subjectsTaught.map((sub, idx) => (
                   <li
                     key={`${sub}-${idx}`}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800"
+                    className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.04] border border-purple-500/20 px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-100"
                   >
                     <span>{sub}</span>
                     <button
@@ -295,23 +319,23 @@ export const AdminTeacherCV: React.FC = () => {
         </section>
 
         {/* Section 3: Residence & Institute Address */}
-        <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <MapPin className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-purple-500/15 pb-3">
+            <MapPin className="h-5 w-5 text-purple-300" />
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
               مكان السكن والعنوان التفصيلي (موقع المعهد أو التدريس)
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 المحافظة
               </label>
               <select
                 value={governorate}
                 onChange={(e) => setGovernorate(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               >
                 {IRAQ_GOVERNORATES.map((gov) => (
                   <option key={gov} value={gov}>
@@ -322,7 +346,7 @@ export const AdminTeacherCV: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 المنطقة / الحي
               </label>
               <input
@@ -330,13 +354,13 @@ export const AdminTeacherCV: React.FC = () => {
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="مثال: الكرادة الشرقية / المنصور"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+            <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
               العنوان التفصيلي للمعهد أو موقع التدريس الحضوري
             </label>
             <input
@@ -344,22 +368,22 @@ export const AdminTeacherCV: React.FC = () => {
               value={instituteAddress}
               onChange={(e) => setInstituteAddress(e.target.value)}
               placeholder="المحافظة — المنطقة — أقرب نقطة دالة واسم المعهد..."
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
             />
           </div>
         </section>
 
         {/* Section 4: Bio & Achievements */}
-        <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Sparkles className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-purple-500/15 pb-3">
+            <Sparkles className="h-5 w-5 text-purple-300" />
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
               النبذة الشخصية والإنجازات ومعدلات الطلاب السابقة
             </h2>
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+            <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
               نبذة شخصية ورسالة للطلبة
             </label>
             <textarea
@@ -367,13 +391,13 @@ export const AdminTeacherCV: React.FC = () => {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="اكتبي نبذة تعريفية عن أسلوبك في التدريس ورؤيتك الأكاديمية..."
-              className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none font-reading"
+              className="w-full rounded-xl border border-purple-500/25 px-3.5 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none font-reading"
             />
           </div>
 
           <div className="space-y-2.5">
-            <label className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
-              <Trophy className="h-3.5 w-3.5 text-[#B48A1E]" />
+            <label className="flex items-center gap-1.5 text-xs font-extrabold text-slate-200">
+              <Trophy className="h-3.5 w-3.5 text-purple-300" />
               <span>الإنجازات ومعدلات الطلاب السابقة ({achievements.length})</span>
             </label>
 
@@ -389,14 +413,14 @@ export const AdminTeacherCV: React.FC = () => {
                   }
                 }}
                 placeholder="أضيفي إنجازاً أو نسبة نجاح أو عدد الأوائل..."
-                className="flex-1 min-h-[42px] rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="flex-1 min-h-[42px] rounded-xl border border-purple-500/25 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleAddAchievement}
-                className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] px-4 text-xs font-extrabold text-white hover:bg-slate-800 whitespace-nowrap"
+                className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-4 text-xs font-extrabold text-white hover:brightness-110 whitespace-nowrap"
               >
-                <Plus className="h-4 w-4 text-[#D4AF37]" />
+                <Plus className="h-4 w-4 text-purple-300" />
                 <span>إضافة</span>
               </button>
             </div>
@@ -406,7 +430,7 @@ export const AdminTeacherCV: React.FC = () => {
                 {achievements.map((ach, idx) => (
                   <li
                     key={`${ach}-${idx}`}
-                    className="flex items-start justify-between gap-3 rounded-xl bg-amber-50/50 border border-amber-200/70 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-800"
+                    className="flex items-start justify-between gap-3 rounded-xl bg-amber-500/12 border border-amber-400/35 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-100"
                   >
                     <span className="leading-relaxed">{ach}</span>
                     <button
@@ -425,17 +449,17 @@ export const AdminTeacherCV: React.FC = () => {
         </section>
 
         {/* Section 5: Contact Numbers & Social Links */}
-        <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Phone className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-purple-500/15 pb-3">
+            <Phone className="h-5 w-5 text-purple-300" />
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
               أرقام التواصل وروابط الحسابات الرسمية
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 رقم الهاتف الرسمي
               </label>
               <input
@@ -444,12 +468,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="07701234567"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm font-mono text-slate-900 focus:border-[#0F172A] focus:outline-none text-left"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm font-mono text-white focus:border-purple-400 focus:outline-none text-left"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 رقم الواتساب
               </label>
               <input
@@ -458,12 +482,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="07701234567"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm font-mono text-slate-900 focus:border-[#0F172A] focus:outline-none text-left"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm font-mono text-white focus:border-purple-400 focus:outline-none text-left"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 رابط قناة التليجرام (اختياري)
               </label>
               <input
@@ -472,12 +496,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={telegram}
                 onChange={(e) => setTelegram(e.target.value)}
                 placeholder="https://t.me/username"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm font-mono text-slate-900 focus:border-[#0F172A] focus:outline-none text-left"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm font-mono text-white focus:border-purple-400 focus:outline-none text-left"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 رابط حساب إنستغرام (اختياري)
               </label>
               <input
@@ -486,12 +510,12 @@ export const AdminTeacherCV: React.FC = () => {
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
                 placeholder="https://instagram.com/username"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm font-mono text-slate-900 focus:border-[#0F172A] focus:outline-none text-left"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm font-mono text-white focus:border-purple-400 focus:outline-none text-left"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-200 mb-1.5">
                 رابط صفحة فيسبوك (اختياري)
               </label>
               <input
@@ -500,7 +524,7 @@ export const AdminTeacherCV: React.FC = () => {
                 value={facebook}
                 onChange={(e) => setFacebook(e.target.value)}
                 placeholder="https://facebook.com/pagename"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm font-mono text-slate-900 focus:border-[#0F172A] focus:outline-none text-left"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm font-mono text-white focus:border-purple-400 focus:outline-none text-left"
               />
             </div>
           </div>
@@ -510,13 +534,22 @@ export const AdminTeacherCV: React.FC = () => {
         <div className="flex items-center justify-end gap-3 pt-1">
           <button
             type="submit"
-            className="w-full sm:w-auto min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-8 text-sm font-extrabold text-slate-950 shadow-sm hover:brightness-105 transition-all"
+            className="w-full sm:w-auto min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-8 text-sm font-extrabold text-white shadow-sm hover:brightness-105 transition-all"
           >
             <Save className="h-4 w-4" />
             <span>حفظ التعديلات وتحديث السيرة الذاتية للطلاب</span>
           </button>
         </div>
       </form>
+
+      <SecurityPinModal
+        isOpen={Boolean(pendingDelete)}
+        title={pendingDelete?.type === 'subject' ? 'تأكيد حذف المادة من السيرة الذاتية' : 'تأكيد حذف الإنجاز من السيرة الذاتية'}
+        itemLabel={pendingDelete?.label ?? ''}
+        warningDetail="سيتم إزالة هذا البند من قائمة السيرة الذاتية، تذكّري الضغط على «حفظ التعديلات» لتحديث النسخة الظاهرة للطلاب."
+        onConfirm={handleConfirmPendingDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 };

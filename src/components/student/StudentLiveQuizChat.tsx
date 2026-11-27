@@ -11,7 +11,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { usePlatform } from '../../context/PlatformContext';
-import { getAudienceLabel } from '../../services/supabase';
+import { getAudienceLabel } from '../../services/platformData';
 import { DEMO_LIVE_QUIZ_QUESTIONS } from '../../services/liveQuizChat';
 import { formatDurationMMSS } from '../../utils/quizRanking';
 import { LiveQuizLeaderboardCard } from '../common/LiveQuizLeaderboardCard';
@@ -50,18 +50,18 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
 
   if (liveQuizRoom.status === 'idle') {
     return (
-      <div className="max-w-2xl mx-auto rounded-2xl bg-white border border-slate-200 p-8 text-center space-y-4">
-        <p className="text-base font-extrabold text-slate-900">
+      <div className="max-w-2xl mx-auto rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-8 text-center space-y-4">
+        <p className="text-base font-extrabold text-white">
           لا توجد جلسة محادثة كوزات مباشرة نشطة حالياً
         </p>
-        <p className="text-xs sm:text-sm text-slate-500 font-reading">
+        <p className="text-xs sm:text-sm text-slate-400 font-reading">
           عندما تفتح الأستاذة تبارك جلسة كوزات مباشرة لمرحلتك سيظهر لك تنبيه فوري للانضمام، أو يمكنك تجربة المعاينة التفاعلية الآن.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <button
             type="button"
             onClick={startDemoLiveQuizPreview}
-            className="min-h-[46px] inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-5 text-xs sm:text-sm font-extrabold text-slate-950"
+            className="min-h-[46px] inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-5 text-xs sm:text-sm font-extrabold text-white"
           >
             <Sparkles className="h-4 w-4" />
             <span>معاينة محادثة كوز مباشر</span>
@@ -89,7 +89,7 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       {/* Top Sticky Room Header */}
-      <div className="rounded-2xl bg-[#0F172A] text-white p-4 sm:p-5 border border-[#D4AF37]/40 space-y-3">
+      <div className="rounded-2xl bg-[#110D1F] text-white p-4 sm:p-5 border border-purple-400/40 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <BackButton onClick={onLeave} label="رجوع" variant="dark" size="sm" />
 
@@ -98,12 +98,12 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
               <Users className="h-3.5 w-3.5" />
               <span>{liveQuizRoom.participants.length} متصل</span>
             </span>
-            <span className="text-slate-600">·</span>
+            <span className="text-slate-300">·</span>
             <span
               className={`inline-flex items-center gap-1 font-extrabold ${
                 sessionRemainingSec <= 60 && liveQuizRoom.status === 'active'
                   ? 'text-red-400'
-                  : 'text-[#D4AF37]'
+                  : 'text-purple-300'
               }`}
               dir="ltr"
             >
@@ -123,8 +123,8 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
             ) : (
               <span className="text-emerald-400">انتهت الجلسة — ظهرت النتائج النهائية</span>
             )}
-            <span className="text-slate-500">·</span>
-            <span className="text-amber-300">
+            <span className="text-slate-400">·</span>
+            <span className="text-purple-300">
               {getAudienceLabel(liveQuizRoom.audience)}
               {liveQuizRoom.branch ? ` (${liveQuizRoom.branch})` : ''}
             </span>
@@ -140,20 +140,20 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
         {liveQuizRoom.systemMessages.map((msg) => (
           <div
             key={msg.id}
-            className="rounded-xl bg-slate-200/75 px-4 py-2.5 text-center text-xs font-semibold text-slate-700"
+            className="rounded-xl bg-slate-200/75 px-4 py-2.5 text-center text-xs font-semibold text-slate-200"
           >
             <span>{msg.text}</span>
-            <span className="mr-2 font-mono text-[10px] text-slate-500">{msg.timestamp}</span>
+            <span className="mr-2 font-mono text-[10px] text-slate-400">{msg.timestamp}</span>
           </div>
         ))}
 
         {liveQuizRoom.questions.length === 0 && liveQuizRoom.status === 'active' && (
-          <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center space-y-2">
-            <Clock className="h-7 w-7 text-[#B48A1E] mx-auto" />
-            <p className="text-sm font-extrabold text-slate-900">
+          <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-8 text-center space-y-2">
+            <Clock className="h-7 w-7 text-purple-300 mx-auto" />
+            <p className="text-sm font-extrabold text-white">
               أنت الآن داخل غرفة الكوزات المباشرة
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               بانتظار إرسال الأستاذة تبارك للسؤال الأول — استعد للإجابة السريعة فور ظهوره!
             </p>
           </div>
@@ -175,18 +175,18 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
           return (
             <article
               key={q.id}
-              className={`rounded-2xl bg-white border p-5 space-y-4 shadow-xs transition-colors ${
+              className={`rounded-2xl bg-white/[0.045] backdrop-blur-xl border p-5 space-y-4 shadow-xs transition-colors ${
                 isExpired && !myAnswer
-                  ? 'border-slate-300 bg-slate-50/70'
+                  ? 'border-purple-500/25 bg-white/[0.035]'
                   : myAnswer
-                    ? 'border-slate-200'
-                    : 'border-[#D4AF37]/60'
+                    ? 'border-purple-500/20'
+                    : 'border-purple-400/60'
               }`}
             >
               {/* Teacher Sender Header + Rapid Countdown */}
               <div className="flex items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#0F172A]">
+                  <span className="font-extrabold text-white">
                     الأستاذة تبارك · السؤال #{q.order}
                   </span>
                 </div>
@@ -194,14 +194,14 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                 {!isExpired ? (
                   <span
                     className={`inline-flex items-center gap-1 font-mono text-sm font-extrabold tabular-nums ${
-                      remainingSec <= 5 ? 'text-red-600' : 'text-[#B48A1E]'
+                      remainingSec <= 5 ? 'text-rose-400' : 'text-purple-300'
                     }`}
                   >
                     <Clock className="h-3.5 w-3.5" />
                     <span>{remainingSec} ث</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
                     <Lock className="h-3.5 w-3.5" />
                     <span>مغلق</span>
                   </span>
@@ -209,21 +209,21 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
               </div>
 
               {/* Smooth Shrinking Countdown Progress Bar */}
-              <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-white/[0.06] overflow-hidden">
                 <div
                   className={`h-full transition-all duration-150 ${
                     isExpired
                       ? 'bg-slate-300'
                       : remainingSec <= 5
                         ? 'bg-red-600'
-                        : 'bg-gradient-to-l from-[#D4AF37] to-[#F59E0B]'
+                        : 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600'
                   }`}
                   style={{ width: `${isExpired ? 0 : progressPct}%` }}
                 />
               </div>
 
               {/* Question Text */}
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
+              <h2 className="text-base sm:text-lg font-extrabold text-white leading-snug">
                 {q.question}
               </h2>
 
@@ -234,21 +234,21 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                   const isCorrectOption = isSessionEnded && idx === q.correctIndex;
 
                   let buttonClasses =
-                    'border-slate-200 bg-slate-50 text-slate-900 hover:border-[#0F172A] hover:bg-slate-100';
+                    'border-purple-500/20 bg-white/[0.04] text-white hover:border-purple-400/60 hover:bg-white/10';
 
                   if (isSessionEnded) {
                     if (isCorrectOption) {
                       buttonClasses =
-                        'border-emerald-500 bg-emerald-50 text-emerald-950 font-extrabold';
+                        'border-emerald-500 bg-emerald-500/15 text-emerald-200 font-extrabold';
                     } else if (isMyChoice && !isCorrectOption) {
-                      buttonClasses = 'border-red-400 bg-red-50 text-red-900 font-bold';
+                      buttonClasses = 'border-red-400 bg-rose-500/15 text-red-900 font-bold';
                     } else {
-                      buttonClasses = 'border-slate-200 bg-slate-50/60 text-slate-400';
+                      buttonClasses = 'border-purple-500/20 bg-white/[0.035] text-slate-400';
                     }
                   } else if (isMyChoice) {
-                    buttonClasses = 'border-[#0F172A] bg-[#0F172A] text-white font-extrabold';
+                    buttonClasses = 'border-purple-400 bg-[#110D1F] text-white font-extrabold';
                   } else if (isLocked) {
-                    buttonClasses = 'border-slate-200 bg-slate-50/70 text-slate-400';
+                    buttonClasses = 'border-purple-500/20 bg-white/[0.035] text-slate-400';
                   }
 
                   return (
@@ -267,8 +267,8 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                               : isSessionEnded && isMyChoice && !isCorrectOption
                                 ? 'bg-red-600 text-white'
                                 : isMyChoice
-                                  ? 'bg-[#D4AF37] text-slate-950'
-                                  : 'bg-white border border-slate-200 text-slate-700'
+                                  ? 'bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 text-white'
+                                  : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-200'
                           }`}
                         >
                           {OPTION_LETTERS[idx]}
@@ -277,13 +277,13 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                       </span>
 
                       {!isSessionEnded && isMyChoice && (
-                        <Lock className="h-3.5 w-3.5 text-[#D4AF37] shrink-0" />
+                        <Lock className="h-3.5 w-3.5 text-purple-300 shrink-0" />
                       )}
                       {isSessionEnded && isCorrectOption && (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                       )}
                       {isSessionEnded && isMyChoice && !isCorrectOption && (
-                        <XCircle className="h-4 w-4 text-red-600 shrink-0" />
+                        <XCircle className="h-4 w-4 text-rose-400 shrink-0" />
                       )}
                     </button>
                   );
@@ -291,12 +291,12 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
               </div>
 
               {/* Status Footer — Keeps correctness strictly secret until teacher ends the entire session */}
-              <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="pt-2 border-t border-purple-500/15 flex flex-wrap items-center justify-between gap-2 text-xs">
                 {myAnswer ? (
                   isSessionEnded ? (
                     <span
                       className={`inline-flex items-center gap-1.5 font-extrabold ${
-                        myAnswer.isCorrect ? 'text-emerald-700' : 'text-red-700'
+                        myAnswer.isCorrect ? 'text-emerald-300' : 'text-rose-300'
                       }`}
                     >
                       {myAnswer.isCorrect ? (
@@ -314,25 +314,25 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                       )}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 font-bold text-[#0F172A]">
-                      <Lock className="h-3.5 w-3.5 text-[#B48A1E]" />
+                    <span className="inline-flex items-center gap-1.5 font-bold text-white">
+                      <Lock className="h-3.5 w-3.5 text-purple-300" />
                       <span>
                         تم قفل إجابتك ({(myAnswer.responseTimeMs / 1000).toFixed(1)} ث) — ستظهر النتيجة بعد إنهاء الجلسة
                       </span>
                     </span>
                   )
                 ) : isExpired ? (
-                  <span className="inline-flex items-center gap-1.5 font-extrabold text-slate-600">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <span className="inline-flex items-center gap-1.5 font-extrabold text-slate-300">
+                    <AlertTriangle className="h-4 w-4 text-rose-400" />
                     <span>انتهى الوقت — تم إغلاق السؤال تلقائياً (بدون إجابة)</span>
                   </span>
                 ) : (
-                  <span className="font-semibold text-slate-600">
+                  <span className="font-semibold text-slate-300">
                     اختر إجابة واحدة بدقة — تُقفل إجابتك فور الضغط ولا يمكن تغييرها.
                   </span>
                 )}
 
-                <span className="font-mono text-[11px] text-slate-500 tabular-nums">
+                <span className="font-mono text-[11px] text-slate-400 tabular-nums">
                   أجاب {answeredTotal}/{liveQuizRoom.participants.length} طالب
                 </span>
               </div>
@@ -342,9 +342,9 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
 
         {/* Demo Preview Interactive Controls (Only when launched via "معاينة محادثة كوز مباشر") */}
         {liveQuizRoom.status === 'active' && liveQuizRoom.isDemoPreview && (
-          <div className="rounded-2xl bg-slate-900 text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-slate-700">
+          <div className="rounded-2xl bg-[#110D1F] text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-purple-500/25">
             <div className="text-xs">
-              <p className="font-extrabold text-[#D4AF37]">محاكاة المعاينة التفاعلية</p>
+              <p className="font-extrabold text-purple-300">محاكاة المعاينة التفاعلية</p>
               <p className="text-slate-300 mt-0.5">
                 {nextDemoPreset
                   ? 'جرّب الإجابة ثم استلم السؤال التالي من الأستاذة أو أنهِ الجلسة لعرض لوحة المستويات.'
@@ -356,7 +356,7 @@ export const StudentLiveQuizChat: React.FC<StudentLiveQuizChatProps> = ({ onLeav
                 <button
                   type="button"
                   onClick={handleSendNextDemoQuestion}
-                  className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-[#D4AF37] px-4 text-xs font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap"
+                  className="min-h-[42px] inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-4 text-xs font-extrabold text-white hover:brightness-105 whitespace-nowrap"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>السؤال التالي ({liveQuizRoom.questions.length + 1}/{demoPresets.length})</span>

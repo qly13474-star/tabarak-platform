@@ -1,49 +1,40 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
-export interface BackButtonProps {
+interface BackButtonProps {
   onClick: () => void;
   label?: string;
-  variant?: 'light' | 'dark' | 'gold' | 'subtle';
+  variant?: 'light' | 'dark' | 'ghost' | 'subtle';
   size?: 'sm' | 'md';
   className?: string;
 }
 
-/**
- * Unified RTL Arabic Back Button
- * Right-pointing arrow (ArrowRight) + "رجوع" across all sub-screens, drawers, and modals.
- */
 export const BackButton: React.FC<BackButtonProps> = ({
   onClick,
-  label = 'رجوع',
+  label = 'العودة',
   variant = 'light',
   size = 'md',
   className = '',
 }) => {
-  const variantStyles: Record<NonNullable<BackButtonProps['variant']>, string> = {
-    light:
-      'bg-white border border-slate-200 text-[#0F172A] hover:border-[#0F172A] hover:bg-slate-50 shadow-xs',
-    dark:
-      'bg-white/10 border border-white/15 text-amber-300 hover:bg-white/15 hover:text-amber-200',
-    gold:
-      'bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/25',
-    subtle:
-      'bg-slate-100 border border-slate-200/80 text-slate-800 hover:bg-slate-200/80',
-  };
+  const styles =
+    variant === 'dark'
+      ? 'bg-white/10 hover:bg-purple-500/25 text-white border border-purple-400/30 hover:border-purple-300/60'
+      : variant === 'ghost'
+        ? 'bg-transparent hover:bg-white/10 text-slate-200 hover:text-white border border-transparent hover:border-purple-500/25'
+        : variant === 'subtle'
+          ? 'bg-white/[0.06] hover:bg-purple-500/20 text-purple-100 hover:text-white border border-purple-500/25 hover:border-purple-400/50'
+          : 'bg-white/5 hover:bg-purple-500/15 text-purple-100 hover:text-white border border-purple-500/25 hover:border-purple-400/50 backdrop-blur-xl shadow-sm';
 
   const sizeStyles =
-    size === 'sm'
-      ? 'min-h-[34px] px-3 py-1 text-xs rounded-lg gap-1.5'
-      : 'min-h-[40px] px-3.5 py-2 text-xs sm:text-sm rounded-xl gap-2';
+    size === 'sm' ? 'px-2.5 py-1.5 text-xs gap-1.5' : 'px-3.5 py-2 text-xs sm:text-sm gap-2';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={label}
-      className={`inline-flex items-center justify-center font-extrabold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${sizeStyles} ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center rounded-xl font-bold transition-all cursor-pointer select-none active:scale-[0.98] ${styles} ${sizeStyles} ${className}`}
     >
-      <ArrowRight className={size === 'sm' ? 'h-3.5 w-3.5 shrink-0' : 'h-4 w-4 shrink-0'} />
+      <ArrowRight className="h-4 w-4 shrink-0 text-purple-300" />
       <span>{label}</span>
     </button>
   );

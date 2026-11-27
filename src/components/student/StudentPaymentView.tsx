@@ -118,86 +118,86 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
       <section
         className={`rounded-2xl border p-5 sm:p-6 space-y-4 ${
           sub.status === 'locked'
-            ? 'bg-red-50 border-red-300'
+            ? 'bg-rose-500/15 border-rose-400/40'
             : sub.status === 'grace_period'
-              ? 'bg-orange-50 border-orange-300'
+              ? 'bg-amber-500/15 border-amber-400/35'
               : sub.status === 'expiring_soon'
-                ? 'bg-amber-50 border-amber-300'
-                : 'bg-white border-slate-200'
+                ? 'bg-amber-500/15 border-amber-400/40'
+                : 'bg-white/[0.045] backdrop-blur-xl border-purple-500/20'
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-extrabold">
               {sub.status === 'locked' ? (
-                <span className="inline-flex items-center gap-1.5 text-red-700">
+                <span className="inline-flex items-center gap-1.5 text-rose-300">
                   <Lock className="h-4 w-4" />
                   <span>حالة الاشتراك: منتهي ومقفول</span>
                 </span>
               ) : sub.status === 'grace_period' ? (
-                <span className="inline-flex items-center gap-1.5 text-orange-800">
+                <span className="inline-flex items-center gap-1.5 text-amber-200">
                   <AlertTriangle className="h-4 w-4" />
                   <span>حالة الاشتراك: فترة السماح الإضافية (5 أيام)</span>
                 </span>
               ) : sub.status === 'expiring_soon' ? (
-                <span className="inline-flex items-center gap-1.5 text-amber-800">
+                <span className="inline-flex items-center gap-1.5 text-amber-200">
                   <Clock className="h-4 w-4" />
                   <span>حالة الاشتراك: ينتهي قريباً</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-emerald-700">
+                <span className="inline-flex items-center gap-1.5 text-emerald-300">
                   <CheckCircle2 className="h-4 w-4" />
                   <span>حالة الاشتراك: نشط ومفعّل</span>
                 </span>
               )}
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white">
               الدفع الشهري وتجديد الاشتراك
             </h1>
-            <p className="text-xs sm:text-sm text-slate-700 font-reading">{sub.shortHint}</p>
+            <p className="text-xs sm:text-sm text-slate-200 font-reading">{sub.shortHint}</p>
           </div>
 
           <div className="text-right sm:text-left shrink-0">
-            <span className="block text-xs text-slate-500">قيمة الاشتراك الشهري</span>
-            <strong className="font-mono text-xl sm:text-2xl font-extrabold text-[#0F172A] tabular-nums">
+            <span className="block text-xs text-slate-400">قيمة الاشتراك الشهري</span>
+            <strong className="font-mono text-xl sm:text-2xl font-extrabold text-white tabular-nums">
               {formatIqd(settings.monthlyFeeIqd)}
             </strong>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-black/10 text-xs">
-          <div className="rounded-xl bg-white/90 border border-slate-200/80 p-3.5">
-            <span className="block text-slate-500">تاريخ الاستحقاق (المحدد من الأستاذة)</span>
+          <div className="rounded-xl bg-[#110D1F]/90 border border-purple-500/20 p-3.5">
+            <span className="block text-slate-400">تاريخ الاستحقاق (المحدد من الأستاذة)</span>
             <strong
-              className="mt-1 inline-flex items-center gap-1.5 font-mono text-sm font-extrabold text-slate-900 tabular-nums"
+              className="mt-1 inline-flex items-center gap-1.5 font-mono text-sm font-extrabold text-white tabular-nums"
               dir="ltr"
             >
-              <Calendar className="h-3.5 w-3.5 text-[#B48A1E]" />
+              <Calendar className="h-3.5 w-3.5 text-purple-300" />
               {sub.dueDate}
             </strong>
           </div>
 
-          <div className="rounded-xl bg-white/90 border border-slate-200/80 p-3.5">
-            <span className="block text-slate-500">نهاية مهلة السماح (+5 أيام / 35 يوماً)</span>
+          <div className="rounded-xl bg-[#110D1F]/90 border border-purple-500/20 p-3.5">
+            <span className="block text-slate-400">نهاية مهلة السماح (+5 أيام / 35 يوماً)</span>
             <strong
-              className="mt-1 block font-mono text-sm font-extrabold text-slate-900 tabular-nums"
+              className="mt-1 block font-mono text-sm font-extrabold text-white tabular-nums"
               dir="ltr"
             >
               {sub.graceEndDate}
             </strong>
           </div>
 
-          <div className="rounded-xl bg-white/90 border border-slate-200/80 p-3.5">
-            <span className="block text-slate-500">الأيام المتبقية</span>
+          <div className="rounded-xl bg-[#110D1F]/90 border border-purple-500/20 p-3.5">
+            <span className="block text-slate-400">الأيام المتبقية</span>
             <strong
               className={`mt-1 block text-sm font-extrabold tabular-nums ${
                 sub.isLocked
-                  ? 'text-red-700'
+                  ? 'text-rose-300'
                   : sub.status === 'grace_period'
-                    ? 'text-orange-700'
+                    ? 'text-purple-300'
                     : sub.status === 'expiring_soon'
-                      ? 'text-amber-700'
-                      : 'text-emerald-700'
+                      ? 'text-purple-300'
+                      : 'text-emerald-300'
               }`}
             >
               {sub.isLocked
@@ -213,16 +213,16 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
       {/* MasterCard Card + One-Tap Copy + WhatsApp CTA */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Royal Navy & Gold MasterCard Box */}
-        <section className="lg:col-span-7 rounded-2xl bg-gradient-to-br from-[#0F172A] via-[#1B2B4B] to-[#080E1E] text-white p-6 border border-[#D4AF37]/50 shadow-lg flex flex-col justify-between gap-6">
+        <section className="lg:col-span-7 rounded-2xl bg-gradient-to-br from-[#1A1033] via-[#130C26] to-[#090712] text-white p-6 border border-purple-400/50 shadow-lg flex flex-col justify-between gap-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold text-[#D4AF37]">بيانات التحويل الرسمية</p>
+              <p className="text-xs font-bold text-purple-300">بيانات التحويل الرسمية</p>
               <h2 className="mt-0.5 text-base font-extrabold text-white">{settings.cardType}</h2>
             </div>
-            <CreditCard className="h-6 w-6 text-[#D4AF37] shrink-0" />
+            <CreditCard className="h-6 w-6 text-purple-300 shrink-0" />
           </div>
 
-          <div className="rounded-xl bg-white/10 border border-white/15 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-xl bg-white/10 border border-purple-500/25 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="block text-[11px] text-slate-300">رقم بطاقة الأستاذة تبارك</span>
               <p
@@ -235,7 +235,7 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
             <button
               type="button"
               onClick={handleCopyCard}
-              className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-4 text-xs sm:text-sm font-extrabold text-slate-950 hover:brightness-105 whitespace-nowrap shrink-0"
+              className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-4 text-xs sm:text-sm font-extrabold text-white hover:brightness-105 whitespace-nowrap shrink-0"
             >
               {copiedCard ? (
                 <>
@@ -251,14 +251,14 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-3 text-xs border-t border-white/10 pt-4">
+          <div className="flex items-center justify-between gap-3 text-xs border-t border-purple-500/20 pt-4">
             <div>
               <span className="block text-slate-400">اسم صاحب البطاقة</span>
               <strong className="text-sm font-bold text-white">{settings.cardHolderName}</strong>
             </div>
             <div className="text-left">
               <span className="block text-slate-400">واتساب الأستاذة الرسمي</span>
-              <strong className="font-mono text-sm font-bold text-amber-300 tabular-nums" dir="ltr">
+              <strong className="font-mono text-sm font-bold text-purple-300 tabular-nums" dir="ltr">
                 {settings.whatsappNumber}
               </strong>
             </div>
@@ -266,15 +266,15 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
         </section>
 
         {/* Direct WhatsApp Verification Card */}
-        <section className="lg:col-span-5 rounded-2xl bg-white border border-slate-200 p-6 flex flex-col justify-between gap-5">
+        <section className="lg:col-span-5 rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-6 flex flex-col justify-between gap-5">
           <div className="space-y-2">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
               <MessageCircle className="h-6 w-6" />
             </div>
-            <h2 className="text-base font-extrabold text-slate-900">
+            <h2 className="text-base font-extrabold text-white">
               إرسال صورة الوصل عبر الواتساب
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-reading leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 font-reading leading-relaxed">
               بعد التحويل على رقم البطاقة، اضغط على الزر بالأسفل لفتح محادثة الواتساب الرسمية للأستاذة تبارك مع رسالة جاهزة تحتوي تلقائياً على اسمك الثلاثي، رقم هاتفك، ومرحلتك الدراسية.
             </p>
           </div>
@@ -292,20 +292,20 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
       </div>
 
       {/* In-App Receipt Upload Form */}
-      <section className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4">
+      <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">
+            <h2 className="text-base font-extrabold text-white">
               رفع صورة وصل التحويل من داخل التطبيق
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               يصل الوصل مباشرة إلى قسم «طلبات التجديد» في لوحة تحكم الأستاذة تبارك للموافقة وتجديد اشتراكك.
             </p>
           </div>
           <button
             type="button"
             onClick={handleAttachSampleReceipt}
-            className="min-h-[36px] rounded-xl bg-amber-50 border border-amber-300 px-3 text-xs font-extrabold text-slate-900 hover:bg-amber-100 whitespace-nowrap"
+            className="min-h-[36px] rounded-xl bg-amber-500/15 border border-amber-400/40 px-3 text-xs font-extrabold text-white hover:bg-amber-500/25 whitespace-nowrap"
           >
             إرفاق وصل تجريبي سريع
           </button>
@@ -314,9 +314,9 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
         {uploadFeedback && (
           <div
             role="status"
-            className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900"
+            className="flex items-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-200"
           >
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
             <span>{uploadFeedback}</span>
           </div>
         )}
@@ -334,18 +334,18 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
               />
               <label
                 htmlFor="receipt-file-upload"
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:border-[#0F172A] hover:bg-slate-100/70 transition-colors p-6 cursor-pointer text-center min-h-[150px]"
+                className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-purple-500/25 bg-white/[0.04] hover:border-purple-400/60 hover:bg-white/10 transition-colors p-6 cursor-pointer text-center min-h-[150px]"
               >
-                <ImagePlus className="h-7 w-7 text-[#B48A1E]" />
-                <span className="text-xs sm:text-sm font-extrabold text-slate-800">
+                <ImagePlus className="h-7 w-7 text-purple-300" />
+                <span className="text-xs sm:text-sm font-extrabold text-slate-100">
                   {receiptFileName || 'اضغط لاختيار صورة وصل التحويل من جهازك'}
                 </span>
-                <span className="text-[11px] text-slate-500">PNG / JPG · لقطة شاشة سوبر كي أو زين كاش</span>
+                <span className="text-[11px] text-slate-400">PNG / JPG · لقطة شاشة سوبر كي أو زين كاش</span>
               </label>
             </div>
 
             {receiptPreview ? (
-              <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+              <div className="rounded-2xl overflow-hidden border border-purple-500/20 bg-[#110D1F]">
                 <img
                   src={receiptPreview}
                   alt="معاينة صورة الوصل"
@@ -353,8 +353,8 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
                 />
               </div>
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 min-h-[150px] flex flex-col justify-center text-xs text-slate-500 space-y-1.5">
-                <p className="font-bold text-slate-700">تلميح سريع:</p>
+              <div className="rounded-2xl border border-purple-500/20 bg-white/[0.035] p-5 min-h-[150px] flex flex-col justify-center text-xs text-slate-400 space-y-1.5">
+                <p className="font-bold text-slate-200">تلميح سريع:</p>
                 <p>
                   احرص على أن يكون رقم العملية والمبلغ وتاريخ التحويل واضحة في الصورة لتسريع موافقة الأستاذة وتجديد حسابك فوراً.
                 </p>
@@ -368,14 +368,14 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="ملاحظة اختيارية (مثلاً: رقم العملية أو اسم المرسل)"
-              className="flex-1 min-h-[46px] rounded-xl border border-slate-300 px-4 text-sm focus:border-[#0F172A] focus:outline-none"
+              className="flex-1 min-h-[46px] rounded-xl border border-purple-500/25 px-4 text-sm focus:border-purple-400 focus:outline-none"
             />
             <button
               type="submit"
               disabled={!receiptPreview}
-              className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-6 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-40 whitespace-nowrap"
+              className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-6 text-sm font-extrabold text-white hover:brightness-110 disabled:opacity-40 whitespace-nowrap"
             >
-              <Send className="h-4 w-4 text-[#D4AF37]" />
+              <Send className="h-4 w-4 text-purple-300" />
               <span>رفع وصل التحويل للأستاذة</span>
             </button>
           </div>
@@ -384,37 +384,37 @@ export const StudentPaymentView: React.FC<StudentPaymentViewProps> = ({ onBack }
 
       {/* Student Renewal Request History */}
       {myRequests.length > 0 && (
-        <section className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 text-xs font-extrabold text-slate-900">
+        <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-purple-500/15 bg-white/[0.04] text-xs font-extrabold text-white">
             سجل طلبات التجديد الخاصة بك ({myRequests.length})
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-purple-500/15">
             {myRequests.map((req) => (
               <div
                 key={req.id}
                 className="p-4 flex flex-wrap items-center justify-between gap-3 text-xs"
               >
                 <div className="space-y-0.5">
-                  <p className="font-extrabold text-slate-900">
+                  <p className="font-extrabold text-white">
                     طلب تجديد بقيمة {formatIqd(req.amountIqd)}
                   </p>
-                  <p className="text-slate-500 font-mono tabular-nums" dir="ltr">
+                  <p className="text-slate-400 font-mono tabular-nums" dir="ltr">
                     {req.submittedAt}
                   </p>
                 </div>
 
                 {req.status === 'pending' ? (
-                  <span className="inline-flex items-center gap-1 font-extrabold text-amber-700">
+                  <span className="inline-flex items-center gap-1 font-extrabold text-amber-300">
                     <Clock className="h-3.5 w-3.5" />
                     <span>قيد المراجعة من الأستاذة</span>
                   </span>
                 ) : req.status === 'approved' ? (
-                  <span className="inline-flex items-center gap-1 font-extrabold text-emerald-700">
+                  <span className="inline-flex items-center gap-1 font-extrabold text-emerald-300">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     <span>تمت الموافقة والتجديد حتى {req.newDueDate}</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 font-extrabold text-red-700">
+                  <span className="inline-flex items-center gap-1 font-extrabold text-rose-300">
                     <XCircle className="h-3.5 w-3.5" />
                     <span>مرفوض — يرجى إعادة إرسال الوصل</span>
                   </span>

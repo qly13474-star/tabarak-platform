@@ -17,7 +17,7 @@ import {
   getAudienceLabel,
   getRelativeDateISO,
   isAssignmentForStudent,
-} from '../../services/supabase';
+} from '../../services/platformData';
 import { SecurityPinModal } from './SecurityPinModal';
 
 function formatArabicDateLabel(dueDate: string): string {
@@ -217,23 +217,23 @@ export const AdminAssignments: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-bold text-[#B48A1E]">المتابعة اليومية والإشعارات الفورية</p>
-          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900">
+          <p className="text-xs font-bold text-purple-300">المتابعة اليومية والإشعارات الفورية</p>
+          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-white">
             التحاضير والواجبات اليومية
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
             أرسلي التحاضير والواجبات لمرحلة أو فرع أو دورة محددة ليصل الإشعار فوراً إلى جرس التنبيهات لدى الطلبة المستهدفين فقط.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-slate-600 tabular-nums shrink-0">
+        <div className="flex items-center gap-4 text-xs text-slate-300 tabular-nums shrink-0">
           <span>
-            إجمالي التحاضير: <strong className="text-slate-900 font-mono">{db.assignments.length}</strong>
+            إجمالي التحاضير: <strong className="text-white font-mono">{db.assignments.length}</strong>
           </span>
           <span className="text-slate-300">·</span>
           <span>
             عاجلة:{' '}
-            <strong className="text-red-700 font-mono">
+            <strong className="text-rose-300 font-mono">
               {db.assignments.filter((a) => a.priority === 'urgent').length}
             </strong>
           </span>
@@ -243,16 +243,16 @@ export const AdminAssignments: React.FC = () => {
       {feedbackMessage && (
         <div
           role="status"
-          className="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-900"
+          className="flex items-center justify-between gap-3 rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-sm font-semibold text-emerald-200"
         >
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
             <span>{feedbackMessage}</span>
           </div>
           <button
             type="button"
             onClick={() => setFeedbackMessage(null)}
-            className="text-xs text-emerald-700 hover:underline shrink-0"
+            className="text-xs text-emerald-300 hover:underline shrink-0"
           >
             إغلاق
           </button>
@@ -260,16 +260,16 @@ export const AdminAssignments: React.FC = () => {
       )}
 
       {/* Create / Edit Assignment Form */}
-      <section className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 bg-[#0F172A] text-white flex flex-wrap items-center justify-between gap-3">
+      <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+        <div className="px-5 py-4 bg-[#110D1F] text-white flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <BellRing className="h-4 w-4 text-[#D4AF37]" />
+            <BellRing className="h-4 w-4 text-purple-300" />
             <h2 className="text-sm font-extrabold">
               {editingId ? 'تعديل التحضير المرسل' : 'إرسال تحضير أو واجب يومي جديد'}
             </h2>
           </div>
           <div className="flex items-center gap-3 text-xs">
-            <span className="inline-flex items-center gap-1.5 text-amber-300 tabular-nums">
+            <span className="inline-flex items-center gap-1.5 text-purple-300 tabular-nums">
               <Users className="h-3.5 w-3.5" />
               <span>سيصل الإشعار إلى {estimatedRecipientsCount} طالب/طالبة</span>
             </span>
@@ -289,7 +289,7 @@ export const AdminAssignments: React.FC = () => {
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
           {/* Dynamic Stage Selection (100% from AdminStages) */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-200">
               1. المرحلة / المسار الدراسي المستهدف
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -302,16 +302,16 @@ export const AdminAssignments: React.FC = () => {
                     onClick={() => handleTrackChange(trk.id)}
                     className={`min-h-[56px] rounded-xl border p-3 text-right transition-colors ${
                       selected
-                        ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                        : 'border-slate-200 bg-slate-50/70 text-slate-800 hover:border-slate-400'
+                        ? 'border-purple-400 bg-[#110D1F] text-white'
+                        : 'border-purple-500/20 bg-white/[0.035] text-slate-100 hover:border-purple-400/50'
                     }`}
                   >
-                    <p className={`text-xs font-extrabold ${selected ? 'text-[#D4AF37]' : 'text-slate-900'}`}>
+                    <p className={`text-xs font-extrabold ${selected ? 'text-purple-300' : 'text-white'}`}>
                       {trk.label}
                     </p>
                     <p
                       className={`mt-0.5 text-[11px] leading-snug truncate ${
-                        selected ? 'text-slate-300' : 'text-slate-500'
+                        selected ? 'text-slate-300' : 'text-slate-400'
                       }`}
                     >
                       {trk.subStages.join(' · ')}
@@ -325,13 +325,13 @@ export const AdminAssignments: React.FC = () => {
           {/* Dynamic SubStage, Branch/Department, Subject & Course Selectors */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 الصف / المرحلة الفرعية
               </label>
               <select
                 value={subStage}
                 onChange={(e) => setSubStage(e.target.value)}
-                className="w-full min-h-[46px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-3.5 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
               >
                 <option value="جميع الصفوف">جميع صفوف هذه المرحلة</option>
                 {(selectedTrackObj?.subStages ?? []).map((cls) => (
@@ -344,7 +344,7 @@ export const AdminAssignments: React.FC = () => {
 
             {availableSpecs.length > 0 && (
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-slate-200">
                   {selectedTrackObj?.specializationLabel || 'الفرع / القسم المستهدف'}
                 </label>
                 <select
@@ -353,7 +353,7 @@ export const AdminAssignments: React.FC = () => {
                     setBranch(e.target.value);
                     setCourseId('');
                   }}
-                  className="w-full min-h-[46px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                  className="w-full min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-3.5 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
                 >
                   <option value="الجميع">جميع الفروع والأقسام</option>
                   {availableSpecs.map((br) => (
@@ -366,7 +366,7 @@ export const AdminAssignments: React.FC = () => {
             )}
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 المادة الدراسية (اختياري)
               </label>
               <input
@@ -375,7 +375,7 @@ export const AdminAssignments: React.FC = () => {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="اختاري مادة من القائمة أو اكتبيها يدوياً..."
-                className="w-full min-h-[46px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-3.5 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
               />
               <datalist id="assignment-subjects-list">
                 {availableSubjects.map((s) => (
@@ -385,13 +385,13 @@ export const AdminAssignments: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 الدورة الدراسية (اختياري)
               </label>
               <select
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                className="w-full min-h-[46px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-3.5 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
               >
                 <option value="">تحضير عام للمرحلة (بدون ربط بدورة محددة)</option>
                 {matchingCourses.map((c) => (
@@ -405,7 +405,7 @@ export const AdminAssignments: React.FC = () => {
 
           {/* Assignment Title */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-200">
               2. عنوان التحضير أو الواجب اليومي
             </label>
             <input
@@ -413,13 +413,13 @@ export const AdminAssignments: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="مثال: تحضير الفصل الثاني - من صفحة 15 إلى 22"
-              className="w-full min-h-[46px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-4 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none"
             />
           </div>
 
           {/* Details & Notes */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-slate-200">
               3. تفاصيل التحضير والملاحظات المهمة للطلاب
             </label>
             <textarea
@@ -427,14 +427,14 @@ export const AdminAssignments: React.FC = () => {
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               placeholder="اذكري الصفحات المطلوبة، المسائل الواجب حلها في الدفتر، أو أي تنبيه يخص الامتحان اليومي القادم..."
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0F172A] focus:outline-none font-reading leading-relaxed"
+              className="w-full rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none font-reading leading-relaxed"
             />
           </div>
 
           {/* Due Date & Priority */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 4. تاريخ التسليم / موعد التحضير القادم
               </label>
               <div className="flex flex-wrap items-center gap-2">
@@ -443,15 +443,15 @@ export const AdminAssignments: React.FC = () => {
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   dir="ltr"
-                  className="flex-1 min-w-[160px] min-h-[46px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-mono font-bold text-slate-900 tabular-nums focus:border-[#0F172A] focus:outline-none"
+                  className="flex-1 min-w-[160px] min-h-[46px] rounded-xl border border-purple-500/20 bg-[#110D1F]/85 px-3.5 text-sm font-mono font-bold text-white tabular-nums focus:border-purple-400 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setDueDate(getRelativeDateISO(0))}
                   className={`min-h-[42px] rounded-xl border px-3 text-xs font-bold whitespace-nowrap ${
                     dueDate === getRelativeDateISO(0)
-                      ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400'
+                      ? 'border-purple-400 bg-[#110D1F] text-white'
+                      : 'border-purple-500/20 bg-white/[0.04] text-slate-200 hover:border-purple-400/50'
                   }`}
                 >
                   اليوم
@@ -461,8 +461,8 @@ export const AdminAssignments: React.FC = () => {
                   onClick={() => setDueDate(getRelativeDateISO(1))}
                   className={`min-h-[42px] rounded-xl border px-3 text-xs font-bold whitespace-nowrap ${
                     dueDate === getRelativeDateISO(1)
-                      ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400'
+                      ? 'border-purple-400 bg-[#110D1F] text-white'
+                      : 'border-purple-500/20 bg-white/[0.04] text-slate-200 hover:border-purple-400/50'
                   }`}
                 >
                   غداً
@@ -472,8 +472,8 @@ export const AdminAssignments: React.FC = () => {
                   onClick={() => setDueDate(getRelativeDateISO(2))}
                   className={`min-h-[42px] rounded-xl border px-3 text-xs font-bold whitespace-nowrap ${
                     dueDate === getRelativeDateISO(2)
-                      ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400'
+                      ? 'border-purple-400 bg-[#110D1F] text-white'
+                      : 'border-purple-500/20 bg-white/[0.04] text-slate-200 hover:border-purple-400/50'
                   }`}
                 >
                   بعد يومين
@@ -482,7 +482,7 @@ export const AdminAssignments: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-200">
                 5. مستوى الأهمية
               </label>
               <div className="grid grid-cols-2 gap-2.5">
@@ -491,8 +491,8 @@ export const AdminAssignments: React.FC = () => {
                   onClick={() => setPriority('normal')}
                   className={`min-h-[46px] rounded-xl border px-3.5 text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                     priority === 'normal'
-                      ? 'border-[#0F172A] bg-[#0F172A] text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'
+                      ? 'border-purple-400 bg-[#110D1F] text-white'
+                      : 'border-purple-500/20 bg-white/[0.045] backdrop-blur-xl text-slate-200 hover:border-purple-400/50'
                   }`}
                 >
                   <ClipboardList className="h-4 w-4" />
@@ -504,7 +504,7 @@ export const AdminAssignments: React.FC = () => {
                   className={`min-h-[46px] rounded-xl border px-3.5 text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                     priority === 'urgent'
                       ? 'border-red-700 bg-red-700 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-red-300'
+                      : 'border-purple-500/20 bg-white/[0.045] backdrop-blur-xl text-slate-200 hover:border-red-300'
                   }`}
                 >
                   <AlertTriangle className="h-4 w-4" />
@@ -515,13 +515,13 @@ export const AdminAssignments: React.FC = () => {
           </div>
 
           {formError && (
-            <p className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+            <p className="text-xs font-bold text-rose-300 bg-rose-500/15 border border-rose-400/35 rounded-xl px-4 py-2.5">
               {formError}
             </p>
           )}
 
-          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100">
-            <p className="text-xs text-slate-500">
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-purple-500/15">
+            <p className="text-xs text-slate-400">
               عند الإرسال، سيظهر التحضير فوراً في جرس الإشعارات وجدول التحاضير الخاص بطلبة الفئة المختارة فقط.
             </p>
             <div className="flex items-center gap-2">
@@ -529,14 +529,14 @@ export const AdminAssignments: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="min-h-[46px] rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  className="min-h-[46px] rounded-xl border border-purple-500/20 px-4 text-xs font-bold text-slate-200 hover:bg-white/[0.08]"
                 >
                   إلغاء
                 </button>
               )}
               <button
                 type="submit"
-                className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-[#D4AF37] to-[#F59E0B] px-6 text-sm font-extrabold text-slate-950 shadow-sm hover:brightness-105 transition-all whitespace-nowrap"
+                className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 px-6 text-sm font-extrabold text-white shadow-sm hover:brightness-105 transition-all whitespace-nowrap"
               >
                 <Send className="h-4 w-4" />
                 <span>
@@ -549,13 +549,13 @@ export const AdminAssignments: React.FC = () => {
       </section>
 
       {/* Sent Assignments Log */}
-      <section className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <section className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+        <div className="px-5 py-4 border-b border-purple-500/15 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-extrabold text-slate-900">
+            <h2 className="text-sm font-extrabold text-white">
               سجل التحاضير والواجبات المرسلة ({filteredAssignments.length})
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               يمكنكِ تعديل أي تحضير أو حذفه ومتابعة نسبة إكمال الطلبة لكل واجب.
             </p>
           </div>
@@ -566,8 +566,8 @@ export const AdminAssignments: React.FC = () => {
               onClick={() => setFilterTrackId('all')}
               className={`min-h-[36px] rounded-xl px-3 text-xs font-bold whitespace-nowrap ${
                 filterTrackId === 'all'
-                  ? 'bg-[#0F172A] text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-[#110D1F] text-white'
+                  : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
               }`}
             >
               الكل ({db.assignments.length})
@@ -579,8 +579,8 @@ export const AdminAssignments: React.FC = () => {
                 onClick={() => setFilterTrackId(trk.id)}
                 className={`min-h-[36px] rounded-xl px-3 text-xs font-bold whitespace-nowrap ${
                   filterTrackId === trk.id
-                    ? 'bg-[#0F172A] text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-[#110D1F] text-white'
+                    : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                 }`}
               >
                 {trk.shortLabel || trk.label}
@@ -590,11 +590,11 @@ export const AdminAssignments: React.FC = () => {
         </div>
 
         {filteredAssignments.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500">
+          <div className="p-10 text-center text-sm text-slate-400">
             لا توجد تحاضير مرسلة لهذه الفئة حتى الآن.
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-purple-500/15">
             {filteredAssignments.map((asg) => {
               const targetStudents = students.filter((s) => isAssignmentForStudent(asg, s));
               const completedCount = targetStudents.filter((s) =>
@@ -606,22 +606,22 @@ export const AdminAssignments: React.FC = () => {
                 <article
                   key={asg.id}
                   className={`p-5 transition-colors ${
-                    isEditingThis ? 'bg-amber-50/50' : 'hover:bg-slate-50/60'
+                    isEditingThis ? 'bg-amber-500/12' : 'hover:bg-white/[0.08]'
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                     <div className="space-y-2 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         {asg.priority === 'urgent' ? (
-                          <span className="inline-flex items-center gap-1 font-extrabold text-red-700">
+                          <span className="inline-flex items-center gap-1 font-extrabold text-rose-300">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span>مهم وعاجل</span>
                           </span>
                         ) : (
-                          <span className="font-bold text-slate-600">تحضير عادي</span>
+                          <span className="font-bold text-slate-300">تحضير عادي</span>
                         )}
                         <span className="text-slate-300">·</span>
-                        <span className="font-bold text-[#0F172A]">
+                        <span className="font-bold text-white">
                           {getAudienceLabel(asg.audience, db.tracks)}
                           {asg.subStage ? ` · ${asg.subStage}` : ''}
                           {asg.branch ? ` — ${asg.branch}` : ''}
@@ -629,30 +629,30 @@ export const AdminAssignments: React.FC = () => {
                         {(asg.subject || asg.courseTitle) && (
                           <>
                             <span className="text-slate-300">·</span>
-                            <span className="text-[#B48A1E] font-semibold">
+                            <span className="text-purple-300 font-semibold">
                               {asg.subject || asg.courseTitle}
                             </span>
                           </>
                         )}
                       </div>
 
-                      <h3 className="text-base font-extrabold text-slate-900 leading-snug">
+                      <h3 className="text-base font-extrabold text-white leading-snug">
                         {asg.title}
                       </h3>
 
-                      <p className="text-xs sm:text-sm text-slate-600 font-reading leading-relaxed">
+                      <p className="text-xs sm:text-sm text-slate-300 font-reading leading-relaxed">
                         {asg.details}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-500 tabular-nums">
-                        <span className="inline-flex items-center gap-1 font-semibold text-slate-700">
-                          <Calendar className="h-3.5 w-3.5 text-[#B48A1E]" />
+                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-400 tabular-nums">
+                        <span className="inline-flex items-center gap-1 font-semibold text-slate-200">
+                          <Calendar className="h-3.5 w-3.5 text-purple-300" />
                           <span>موعد التحضير: {formatArabicDateLabel(asg.dueDate)}</span>
                         </span>
                         <span className="text-slate-300">·</span>
                         <span>
                           الإكمال:{' '}
-                          <strong className="font-mono text-emerald-700">
+                          <strong className="font-mono text-emerald-300">
                             {completedCount} / {targetStudents.length}
                           </strong>{' '}
                           طالب
@@ -668,16 +668,16 @@ export const AdminAssignments: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleStartEdit(asg)}
-                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-800 hover:border-[#0F172A]"
+                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl border border-purple-500/20 bg-white/[0.045] backdrop-blur-xl px-3.5 text-xs font-bold text-slate-100 hover:border-purple-400/60"
                       >
-                        <Edit3 className="h-3.5 w-3.5 text-[#B48A1E]" />
+                        <Edit3 className="h-3.5 w-3.5 text-purple-300" />
                         <span>تعديل</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setPendingDeleteAssignment(asg)}
-                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-red-700 hover:border-red-300 hover:bg-red-50"
+                        className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl border border-purple-500/20 bg-white/[0.045] backdrop-blur-xl px-3.5 text-xs font-bold text-rose-300 hover:border-red-300 hover:bg-rose-500/20"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span>حذف</span>

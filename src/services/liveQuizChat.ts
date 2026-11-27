@@ -7,7 +7,7 @@ import {
 } from '../types';
 import { getLevelLabel } from '../utils/quizRanking';
 import { formatCurrentTimeHHMM } from './livekit';
-import { getTrackForAudience } from './supabase';
+import { getTrackForAudience } from './platformData';
 
 const LIVE_QUIZ_ROOM_KEY = 'tabarak_academy_live_quiz_room_v1';
 

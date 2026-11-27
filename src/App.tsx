@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React from 'react';
 import { PlatformProvider, usePlatform } from './context/PlatformContext';
 import { AuthScreen } from './components/auth/AuthScreen';
@@ -10,34 +5,39 @@ import { StudentShell } from './components/student/StudentShell';
 import { AdminDashboardShell } from './components/admin/AdminDashboardShell';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 
-const AppRouter: React.FC = () => {
+const PlatformRouter: React.FC = () => {
   const { currentUser, activeAppMode } = usePlatform();
 
-  const renderContent = () => {
+  const renderMainContent = () => {
     if (!currentUser) {
       return <AuthScreen />;
     }
 
-    if (activeAppMode === 'admin') {
-      return currentUser.role === 'admin' ? <AdminDashboardShell /> : <AuthScreen />;
+    if (activeAppMode === 'admin' && currentUser.role === 'admin') {
+      return <AdminDashboardShell />;
     }
 
-    // Strict Student Mode — never exposes AdminDashboardShell or admin controls
-    return currentUser.role === 'student' ? <StudentShell /> : <AuthScreen />;
+    if (activeAppMode === 'student' && currentUser.role === 'student') {
+      return <StudentShell />;
+    }
+
+    return <AuthScreen />;
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col overflow-x-hidden">
-      <div className="flex-1 flex flex-col">{renderContent()}</div>
+    <div className="min-h-[100dvh] bg-[#090712] text-white relative selection:bg-purple-500/35 selection:text-purple-100">
+      {renderMainContent()}
       <OfflineIndicator />
     </div>
   );
 };
 
-export default function App() {
+export function App() {
   return (
     <PlatformProvider>
-      <AppRouter />
+      <PlatformRouter />
     </PlatformProvider>
   );
 }
+
+export default App;

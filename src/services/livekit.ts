@@ -3,9 +3,8 @@
  *
  * Security guarantee:
  * - LIVEKIT_API_KEY and LIVEKIT_API_SECRET NEVER exist in frontend code.
- * - All room access tokens are minted exclusively on the server (`POST /api/livekit/token`
- *   or Supabase Edge Function `livekit-token`) after verifying the user's Supabase session,
- *   active monthly subscription, and course enrollment.
+ * - All room access tokens are minted exclusively on the server (`POST /api/livekit/token`)
+ *   after verifying the user's Firebase session, active monthly subscription, and course enrollment.
  * - Frontend receives ONLY the short-lived signed JWT `token` and `wsUrl` (wss://...).
  */
 
@@ -45,23 +44,23 @@ export interface LiveKitTokenResult {
 
 export async function checkLiveKitServerStatus(): Promise<{
   livekitConfigured: boolean;
-  supabaseConfigured: boolean;
+  firebaseConfigured: boolean;
 }> {
   try {
     const res = await fetch('/api/livekit/status', { method: 'GET' });
     if (!res.ok) {
-      return { livekitConfigured: false, supabaseConfigured: false };
+      return { livekitConfigured: false, firebaseConfigured: false };
     }
     const data = (await res.json()) as {
       livekitConfigured?: boolean;
-      supabaseConfigured?: boolean;
+      firebaseConfigured?: boolean;
     };
     return {
       livekitConfigured: Boolean(data.livekitConfigured),
-      supabaseConfigured: Boolean(data.supabaseConfigured),
+      firebaseConfigured: Boolean(data.firebaseConfigured),
     };
   } catch {
-    return { livekitConfigured: false, supabaseConfigured: false };
+    return { livekitConfigured: false, firebaseConfigured: false };
   }
 }
 
@@ -127,7 +126,7 @@ export async function requestLiveKitRoomToken(params: {
       };
     }
 
-    // 503 means server LiveKit/Supabase env keys are not yet populated -> graceful preview fallback
+    // 503 means server LiveKit/Firebase env keys are not yet populated -> graceful preview fallback
     if (response.status === 503) {
       return {
         mode: 'mock',
@@ -318,7 +317,7 @@ export function buildInitialLiveSession(): LiveSession {
   const chatMessages: LiveChatMessage[] = [
     {
       id: 'msg-1',
-      senderName: 'الأستاذة تبارك الأزيرجاوي',
+      senderName: 'الأستاذة تبارك الزيرجاوي',
       senderRole: 'admin',
       text: 'أهلاً بكم أعزائي الطلبة في البث المباشر الموحّد للمراجعة المركزة. الصوت واضح عند الجميع؟',
       timestamp: '14:01',
@@ -356,7 +355,7 @@ export function buildInitialLiveSession(): LiveSession {
     chatMessages,
     lastAnnouncement: {
       id: 'ann-initial',
-      message: 'بدأت الأستاذة تبارك الأزيرجاوي البث المباشر الآن — سارع بالانضمام!',
+      message: 'بدأت الأستاذة تبارك الزيرجاوي البث المباشر الآن — سارع بالانضمام!',
       timestamp: '14:00',
     },
   };

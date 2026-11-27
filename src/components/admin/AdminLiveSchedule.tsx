@@ -126,10 +126,10 @@ export const AdminLiveSchedule: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white">
           إدارة جدول البث الأسبوعي (Weekly Live Schedule)
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-400">
           حدّدي مواعيد البث الأسبوعية لكل مرحلة وصف وفرع ومادة، وستظهر تلقائياً لكل طالب حسب مرحلته فقط.
         </p>
       </div>
@@ -137,9 +137,9 @@ export const AdminLiveSchedule: React.FC = () => {
       {feedback && (
         <div
           role="status"
-          className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900"
+          className="flex items-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-200"
         >
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{feedback}</span>
         </div>
       )}
@@ -147,12 +147,12 @@ export const AdminLiveSchedule: React.FC = () => {
       {/* Add / Edit Schedule Slot Form */}
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4"
+        className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4"
       >
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div className="flex items-center justify-between gap-2 border-b border-purple-500/15 pb-3">
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-base font-extrabold text-slate-900">
+            <CalendarDays className="h-5 w-5 text-purple-300" />
+            <h2 className="text-base font-extrabold text-white">
               {editingSlotId ? 'تعديل موعد بث أسبوعي' : 'إضافة موعد بث أسبوعي جديد'}
             </h2>
           </div>
@@ -160,7 +160,7 @@ export const AdminLiveSchedule: React.FC = () => {
             <button
               type="button"
               onClick={resetForm}
-              className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900"
+              className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-white"
             >
               <X className="h-3.5 w-3.5" />
               <span>إلغاء التعديل</span>
@@ -169,18 +169,18 @@ export const AdminLiveSchedule: React.FC = () => {
         </div>
 
         {formError && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs font-bold text-red-800">
+          <div className="rounded-xl bg-rose-500/15 border border-rose-400/35 px-4 py-2.5 text-xs font-bold text-rose-200">
             {formError}
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">اليوم</label>
+            <label className="block text-xs font-bold text-slate-200 mb-1.5">اليوم</label>
             <select
               value={dayOfWeek}
               onChange={(e) => setDayOfWeek(e.target.value as ArabicWeekday)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-sm font-bold text-white focus:border-purple-400 focus:outline-none"
             >
               {ARABIC_WEEKDAYS.map((d) => (
                 <option key={d} value={d}>
@@ -191,23 +191,23 @@ export const AdminLiveSchedule: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">الساعة (توقيت بغداد)</label>
+            <label className="block text-xs font-bold text-slate-200 mb-1.5">الساعة (توقيت بغداد)</label>
             <input
               type="text"
               required
               value={timeLabel}
               onChange={(e) => setTimeLabel(e.target.value)}
               placeholder="مثال: 08:00 مساءً"
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-bold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3.5 text-sm font-bold text-white focus:border-purple-400 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">المرحلة الدراسية</label>
+            <label className="block text-xs font-bold text-slate-200 mb-1.5">المرحلة الدراسية</label>
             <select
               value={track}
               onChange={(e) => handleTrackChange(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-sm font-bold text-white focus:border-purple-400 focus:outline-none"
             >
               {db.tracks.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -218,11 +218,11 @@ export const AdminLiveSchedule: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">الصف / المرحلة الفرعية</label>
+            <label className="block text-xs font-bold text-slate-200 mb-1.5">الصف / المرحلة الفرعية</label>
             <select
               value={subStage}
               onChange={(e) => setSubStage(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
             >
               <option value="جميع الصفوف">جميع الصفوف في هذه المرحلة</option>
               {(selectedTrackObj?.subStages ?? []).map((cls) => (
@@ -235,13 +235,13 @@ export const AdminLiveSchedule: React.FC = () => {
 
           {selectedSpecs.length > 0 && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 {selectedTrackObj?.specializationLabel || 'الفرع / القسم'}
               </label>
               <select
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-sm font-semibold text-white focus:border-purple-400 focus:outline-none"
               >
                 <option value="جميع الفروع">جميع الفروع والأقسام</option>
                 {selectedSpecs.map((sp) => (
@@ -254,7 +254,7 @@ export const AdminLiveSchedule: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">المادة الدراسية</label>
+            <label className="block text-xs font-bold text-slate-200 mb-1.5">المادة الدراسية</label>
             <input
               type="text"
               list="schedule-track-subjects"
@@ -262,7 +262,7 @@ export const AdminLiveSchedule: React.FC = () => {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="اختاري مادة أو اكتبيها يدوياً"
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm font-bold text-slate-900 focus:border-[#0F172A] focus:outline-none"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3.5 text-sm font-bold text-white focus:border-purple-400 focus:outline-none"
             />
             <datalist id="schedule-track-subjects">
               {selectedSubjects.map((sub) => (
@@ -273,7 +273,7 @@ export const AdminLiveSchedule: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+          <label className="block text-xs font-bold text-slate-200 mb-1.5">
             ملاحظة أو عنوان الموضوع (اختياري)
           </label>
           <input
@@ -281,23 +281,23 @@ export const AdminLiveSchedule: React.FC = () => {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="مثال: مراجعة الفصل الثالث وحل نماذج وزارية مباشرة"
-            className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 focus:border-[#0F172A] focus:outline-none"
+            className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3.5 text-sm text-white focus:border-purple-400 focus:outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2 pt-1">
           <button
             type="submit"
-            className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-[#0F172A] px-5 text-sm font-extrabold text-white hover:bg-slate-800"
+            className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-5 text-sm font-extrabold text-white hover:brightness-110"
           >
-            <Plus className="h-4 w-4 text-[#D4AF37]" />
+            <Plus className="h-4 w-4 text-purple-300" />
             <span>{editingSlotId ? 'حفظ التعديلات' : 'إضافة إلى جدول البث'}</span>
           </button>
           {editingSlotId && (
             <button
               type="button"
               onClick={resetForm}
-              className="min-h-[44px] rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-600"
+              className="min-h-[44px] rounded-xl border border-purple-500/25 px-4 text-sm font-bold text-slate-300"
             >
               إلغاء
             </button>
@@ -308,7 +308,7 @@ export const AdminLiveSchedule: React.FC = () => {
       {/* Filter & Schedule List */}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-slate-900 tabular-nums">
+          <h2 className="text-base font-extrabold text-white tabular-nums">
             المواعيد المجدولة ({db.weeklySchedule.length})
           </h2>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -317,8 +317,8 @@ export const AdminLiveSchedule: React.FC = () => {
               onClick={() => setFilterTrack('all')}
               className={`min-h-[38px] rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                 filterTrack === 'all'
-                  ? 'bg-[#0F172A] text-[#D4AF37]'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-400'
+                  ? 'bg-[#110D1F] text-purple-300'
+                  : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-200 hover:border-purple-400/50'
               }`}
             >
               جميع المراحل
@@ -330,8 +330,8 @@ export const AdminLiveSchedule: React.FC = () => {
                 onClick={() => setFilterTrack(t.id)}
                 className={`min-h-[38px] rounded-xl px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
                   filterTrack === t.id
-                    ? 'bg-[#0F172A] text-[#D4AF37]'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-400'
+                    ? 'bg-[#110D1F] text-purple-300'
+                    : 'bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 text-slate-200 hover:border-purple-400/50'
                 }`}
               >
                 {t.shortLabel || t.label}
@@ -341,7 +341,7 @@ export const AdminLiveSchedule: React.FC = () => {
         </div>
 
         {groupedByDay.length === 0 ? (
-          <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-xs text-slate-500">
+          <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-8 text-center text-xs text-slate-400">
             لا توجد مواعيد بث مجدولة لهذه المرحلة حالياً. يمكنكِ إضافة أول موعد من النموذج أعلاه.
           </div>
         ) : (
@@ -349,47 +349,47 @@ export const AdminLiveSchedule: React.FC = () => {
             {groupedByDay.map(({ day, slots }) => (
               <section
                 key={day}
-                className="rounded-2xl bg-white border border-slate-200 overflow-hidden"
+                className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden"
               >
-                <div className="bg-[#0F172A] text-white px-5 py-3 flex items-center justify-between">
+                <div className="bg-[#110D1F] text-white px-5 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-[#D4AF37]" />
+                    <CalendarDays className="h-4 w-4 text-purple-300" />
                     <h3 className="text-sm font-extrabold">يوم {day}</h3>
                   </div>
-                  <span className="text-xs text-amber-300 tabular-nums">{slots.length} مواعيد</span>
+                  <span className="text-xs text-purple-300 tabular-nums">{slots.length} مواعيد</span>
                 </div>
 
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-purple-500/15">
                   {slots.map((slot) => (
                     <div
                       key={slot.id}
-                      className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70"
+                      className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.06]"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 font-extrabold text-[#B48A1E] tabular-nums">
+                          <span className="inline-flex items-center gap-1 font-extrabold text-purple-300 tabular-nums">
                             <Clock className="h-3.5 w-3.5" />
                             <span>{slot.timeLabel}</span>
                           </span>
                           <span className="text-slate-300">·</span>
-                          <span className="font-bold text-slate-700">
+                          <span className="font-bold text-slate-200">
                             {getTrackName(slot.track)}
                           </span>
                           <span className="text-slate-300">·</span>
-                          <span className="text-slate-600">{slot.subStage}</span>
+                          <span className="text-slate-300">{slot.subStage}</span>
                           {slot.branch && (
                             <>
                               <span className="text-slate-300">·</span>
-                              <span className="font-semibold text-[#0F172A]">{slot.branch}</span>
+                              <span className="font-semibold text-white">{slot.branch}</span>
                             </>
                           )}
                         </div>
-                        <p className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-                          <BookOpen className="h-4 w-4 text-[#B48A1E] shrink-0" />
+                        <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                          <BookOpen className="h-4 w-4 text-purple-300 shrink-0" />
                           <span>{slot.subject}</span>
                         </p>
                         {slot.note && (
-                          <p className="text-xs text-slate-500 font-reading">{slot.note}</p>
+                          <p className="text-xs text-slate-400 font-reading">{slot.note}</p>
                         )}
                       </div>
 
@@ -397,15 +397,15 @@ export const AdminLiveSchedule: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleEditSlot(slot)}
-                          className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:border-[#0F172A]"
+                          className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-purple-500/20 bg-white/[0.045] backdrop-blur-xl px-3 text-xs font-bold text-slate-200 hover:border-purple-400/60"
                         >
-                          <Pencil className="h-3.5 w-3.5 text-[#B48A1E]" />
+                          <Pencil className="h-3.5 w-3.5 text-purple-300" />
                           <span>تعديل</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setPendingDelete(slot)}
-                          className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-700 hover:bg-red-100"
+                          className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-rose-400/35 bg-rose-500/15 px-3 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           <span>حذف</span>

@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
-import { Download, Share, PlusSquare, X, Smartphone } from 'lucide-react';
+import {
+  CheckCircle2,
+  Download,
+  MoreVertical,
+  PlusSquare,
+  Share,
+  Smartphone,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 interface PWAInstallButtonProps {
-  variant?: 'header' | 'card' | 'drawer';
+  /** Compact header pill vs prominent glowing CTA button */
+  variant?: 'header' | 'banner' | 'drawer';
   className?: string;
 }
 
@@ -12,105 +22,224 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   className = '',
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
-  // Hide completely when already running in standalone installed mode
+  // Automatically hidden when already running as an installed standalone PWA
   if (isInstalled) {
     return null;
   }
 
-  // Only render when native install prompt is available or on iOS Safari
-  if (!isInstallable && !isIOS) {
-    return null;
-  }
-
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isInstallable) {
-      void install();
-    } else if (isIOS) {
-      setShowIOSGuide(true);
+      const accepted = await install();
+      if (accepted) return;
     }
+    // iOS Safari or browsers where native prompt hasn't fired yet -> open Arabic dark-purple glass modal
+    setShowGuideModal(true);
   };
-
-  const buttonClasses =
-    variant === 'drawer'
-      ? 'w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-4 py-2.5 text-xs font-extrabold text-[#D4AF37] hover:bg-slate-800 transition-colors'
-      : variant === 'card'
-        ? 'inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-[#D4AF37]/50 bg-[#0F172A] px-3.5 py-2 text-xs font-extrabold text-[#D4AF37] hover:bg-slate-800 transition-colors whitespace-nowrap'
-        : 'min-h-[38px] inline-flex items-center gap-1.5 rounded-xl bg-slate-800 border border-[#D4AF37]/40 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-extrabold text-[#D4AF37] hover:bg-slate-700 transition-colors whitespace-nowrap shrink-0';
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleClick}
-        aria-label="تثبيت تطبيق منصة الأستاذة تبارك"
-        className={`${buttonClasses} ${className}`}
-      >
-        <Download className="h-3.5 w-3.5 shrink-0" />
-        <span>{isIOS ? 'تثبيت على الآيفون' : 'تثبيت التطبيق'}</span>
-      </button>
+      {variant === 'drawer' ? (
+        <button
+          type="button"
+          onClick={handleClick}
+          className={`w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-xs font-extrabold text-white bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 border border-purple-300/30 shadow-[0_8px_24px_-6px_rgba(147,51,234,0.75)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer ${className}`}
+        >
+          <span className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 border border-white/20">
+              <Download className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-right">
+              <span className="block text-xs font-black">تثبيت التطبيق</span>
+              <span className="block text-[10px] font-medium text-purple-100/85">
+                وصول فوري من الشاشة الرئيسية
+              </span>
+            </span>
+          </span>
+          <Sparkles className="h-4 w-4 text-purple-100 shrink-0" />
+        </button>
+      ) : variant === 'banner' ? (
+        <button
+          type="button"
+          onClick={handleClick}
+          className={`inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-extrabold text-white bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 border border-purple-300/35 shadow-[0_0_24px_-4px_rgba(168,85,247,0.75)] hover:shadow-[0_0_32px_-2px_rgba(192,132,252,0.9)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer ${className}`}
+        >
+          <Download className="h-4 w-4 shrink-0" />
+          <span>تثبيت التطبيق</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleClick}
+          aria-label="تثبيت التطبيق على جهازك"
+          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold text-white bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 border border-purple-300/35 shadow-[0_0_20px_-4px_rgba(168,85,247,0.8)] hover:brightness-110 active:scale-95 transition-all cursor-pointer shrink-0 ${className}`}
+        >
+          <Download className="h-3.5 w-3.5 shrink-0" />
+          <span>تثبيت التطبيق</span>
+        </button>
+      )}
 
-      {showIOSGuide && (
+      {/* Sleek Dark Luxury Purple Glassmorphism Install Guide Modal (iOS Safari + Fallback) */}
+      {showGuideModal && (
         <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md p-4"
+          onClick={() => setShowGuideModal(false)}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="ios-install-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4"
+          aria-label="تثبيت تطبيق منصة الأستاذة تبارك الزيرجاوي"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl text-right">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F172A] text-[#D4AF37] shrink-0">
-                  <Smartphone className="h-5 w-5" />
-                </div>
+          <div
+            className="w-full max-w-md rounded-3xl bg-[#110D1F]/95 backdrop-blur-2xl border border-purple-500/35 shadow-[0_24px_80px_-16px_rgba(124,58,237,0.65)] overflow-hidden relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient purple top glow */}
+            <div
+              className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-48 w-72 rounded-full bg-purple-600/30 blur-3xl"
+              aria-hidden="true"
+            />
+
+            {/* Header */}
+            <div className="relative px-5 pt-5 pb-4 border-b border-purple-500/20 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/pwa-192x192.png"
+                  alt="أيقونة تطبيق الأستاذة تبارك الزيرجاوي"
+                  className="h-12 w-12 rounded-2xl border border-purple-400/50 shadow-[0_0_20px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
+                />
                 <div>
-                  <h3 id="ios-install-title" className="text-base font-extrabold text-slate-900">
-                    تثبيت منصة الأستاذة تبارك
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    تثبيت التطبيق على جهازك
                   </h3>
-                  <p className="text-xs text-slate-500">يعمل بملء الشاشة على الآيفون والآيباد</p>
+                  <p className="text-[11px] font-semibold text-purple-300 mt-0.5">
+                    {isIOS
+                      ? 'خطوات التثبيت السريع لأجهزة الآيفون والآيباد (Safari)'
+                      : 'منصة الأستاذة تبارك الزيرجاوي — وصول مباشر بضغطة واحدة'}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setShowIOSGuide(false)}
-                aria-label="إغلاق"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                onClick={() => setShowGuideModal(false)}
+                aria-label="إغلاق نافذة التثبيت"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-purple-500/25 text-slate-300 hover:text-white hover:border-purple-400/60 transition-colors cursor-pointer shrink-0"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <ol className="mt-5 space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed font-reading">
-              <li className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-200 p-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#0F172A] text-[#D4AF37] font-mono text-xs font-bold shrink-0">
-                  1
-                </span>
-                <span>
-                  اضغط على زر <strong className="text-slate-900">المشاركة (Share)</strong>{' '}
-                  <Share className="inline h-3.5 w-3.5 text-[#0F172A] mx-0.5" /> في أسفل متصفح Safari.
-                </span>
-              </li>
-              <li className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-200 p-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#0F172A] text-[#D4AF37] font-mono text-xs font-bold shrink-0">
-                  2
-                </span>
-                <span>
-                  مرّر للأسفل واضغط على{' '}
-                  <strong className="text-slate-900">إضافة إلى الشاشة الرئيسية</strong>{' '}
-                  <PlusSquare className="inline h-3.5 w-3.5 text-[#0F172A] mx-0.5" /> ثم اضغط{' '}
-                  <strong className="text-slate-900">إضافة (Add)</strong>.
-                </span>
-              </li>
-            </ol>
+            {/* Steps */}
+            <div className="relative p-5 space-y-3 text-xs sm:text-sm text-slate-200 leading-relaxed">
+              {isIOS ? (
+                <>
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      1
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5 flex-wrap">
+                        <span>اضغط على زر المشاركة (Share)</span>
+                        <span className="inline-flex items-center justify-center rounded-lg bg-purple-500/20 border border-purple-400/35 px-1.5 py-0.5 text-purple-200">
+                          <Share className="h-3.5 w-3.5" />
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        يوجد أسفل شاشة متصفح Safari في المنتصف.
+                      </p>
+                    </div>
+                  </div>
 
-            <button
-              type="button"
-              onClick={() => setShowIOSGuide(false)}
-              className="mt-5 w-full min-h-[44px] rounded-xl bg-[#0F172A] text-sm font-bold text-[#D4AF37] hover:bg-slate-800 transition-colors"
-            >
-              فهمت، إغلاق
-            </button>
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      2
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5 flex-wrap">
+                        <span>اختر «إضافة إلى الشاشة الرئيسية»</span>
+                        <span className="inline-flex items-center justify-center rounded-lg bg-purple-500/20 border border-purple-400/35 px-1.5 py-0.5 text-purple-200">
+                          <PlusSquare className="h-3.5 w-3.5" />
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        مرّر القائمة للأسفل واضغط على Add to Home Screen.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      3
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        <span>اضغط «إضافة» ليظهر التطبيق على شاشتك</span>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        سيظهر بأيقونة «الأستاذة تبارك الزيرجاوي» ويعمل كتطبيق مستقل بالكامل.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      1
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5 flex-wrap">
+                        <span>افتح قائمة المتصفح (Chrome / Edge)</span>
+                        <span className="inline-flex items-center justify-center rounded-lg bg-purple-500/20 border border-purple-400/35 px-1.5 py-0.5 text-purple-200">
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        اضغط على أيقونة النقاط الثلاث أعلى المتصفح أو أيقونة التثبيت في شريط العنوان.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      2
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5 flex-wrap">
+                        <span>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»</span>
+                        <Smartphone className="h-4 w-4 text-purple-300 shrink-0" />
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        وعلى أجهزة الآيفون استخدم زر المشاركة (Share) في متصفح Safari ثم «إضافة إلى الشاشة الرئيسية».
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-2xl bg-white/[0.04] border border-purple-500/20 p-3.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 text-xs font-black text-white shadow-md">
+                      3
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold text-white flex items-center gap-1.5">
+                        <span>اضغط «تثبيت» للاستمتاع بتجربة تطبيق كاملة</span>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      </p>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        ستظهر أيقونة «الأستاذة تبارك الزيرجاوي» مباشرة على شاشة هاتفك الرئيسية.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(false)}
+                className="w-full mt-2 rounded-2xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 py-3 text-sm font-black text-white shadow-[0_8px_24px_-6px_rgba(147,51,234,0.75)] hover:brightness-110 transition-all cursor-pointer"
+              >
+                فهمت، شكراً
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,0 +1,295 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything not explicitly allowed below
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // Global Helper Primitives
+    // =========================================================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Check active admin role in Firestore or bootstrapped Super Admin account
+    function isSuperAdminEmail() {
+      return isSignedIn() &&
+        request.auth.token.email is string &&
+        (
+          request.auth.token.email == '07848333046@tabarak.edu.iq' ||
+          request.auth.token.email == 'tabarak@tabarak.edu.iq'
+        );
+    }
+
+    function isAdmin() {
+      return isSuperAdminEmail() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true
+      );
+    }
+
+    function isSuperAdmin() {
+      return isSuperAdminEmail() || (
+        isAdmin() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true
+      );
+    }
+
+    // =========================================================================
+    // Validation Blueprints
+    // =========================================================================
+    function isValidStudentSelfCreate(userId) {
+      return incoming().keys().hasAll(['id', 'fullName', 'phone', 'role', 'track', 'subStage', 'isActive']) &&
+        incoming().id == userId &&
+        incoming().role == 'student' &&
+        (!('isSuperAdmin' in incoming()) || incoming().isSuperAdmin == false) &&
+        (!('permissions' in incoming()) || (incoming().permissions is list && incoming().permissions.size() == 0)) &&
+        incoming().fullName is string && incoming().fullName.size() >= 3 && incoming().fullName.size() <= 120 &&
+        incoming().phone is string && incoming().phone.size() >= 9 && incoming().phone.size() <= 20 &&
+        incoming().track is string && incoming().track.size() > 0 && incoming().track.size() <= 80 &&
+        incoming().subStage is string && incoming().subStage.size() > 0 && incoming().subStage.size() <= 120 &&
+        incoming().isActive == true;
+    }
+
+    function isValidUserUpdateByStudent() {
+      return incoming().role == existing().role &&
+        incoming().id == existing().id &&
+        (!('isSuperAdmin' in incoming()) || incoming().isSuperAdmin == existing().isSuperAdmin) &&
+        incoming().isActive == existing().isActive &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'parentPhone',
+          'lastLoginAt',
+          'deviceId'
+        ]) &&
+        (
+          !('deviceId' in incoming().diff(existing()).affectedKeys()) ||
+          existing().deviceId == null ||
+          existing().deviceId == '' ||
+          incoming().deviceId == existing().deviceId
+        );
+    }
+
+    function isValidUserPayload() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().fullName is string && incoming().fullName.size() > 0 && incoming().fullName.size() <= 140 &&
+        incoming().phone is string && incoming().phone.size() > 0 && incoming().phone.size() <= 40 &&
+        (incoming().role == 'student' || incoming().role == 'admin') &&
+        incoming().isActive is bool;
+    }
+
+    function isValidTrackPayload() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().label is string && incoming().label.size() > 0 && incoming().label.size() <= 120 &&
+        incoming().subStages is list && incoming().subStages.size() <= 50;
+    }
+
+    function isValidCoursePayload() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 200 &&
+        incoming().track is string && incoming().track.size() > 0 && incoming().track.size() <= 80 &&
+        incoming().subStage is string && incoming().subStage.size() > 0 && incoming().subStage.size() <= 120;
+    }
+
+    function isValidStoreItemPayload() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 200 &&
+        incoming().priceIqd is number && incoming().priceIqd >= 0;
+    }
+
+    function isValidStoreOrderCreate() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().itemId is string && incoming().itemId.size() > 0 && incoming().itemId.size() <= 128 &&
+        incoming().studentId == request.auth.uid &&
+        incoming().studentName is string && incoming().studentName.size() > 0 && incoming().studentName.size() <= 140 &&
+        incoming().phone is string && incoming().phone.size() >= 9 && incoming().phone.size() <= 20 &&
+        incoming().governorate is string && incoming().governorate.size() > 0 && incoming().governorate.size() <= 80 &&
+        incoming().address is string && incoming().address.size() > 0 && incoming().address.size() <= 400 &&
+        incoming().quantity is number && incoming().quantity >= 1 && incoming().quantity <= 20 &&
+        incoming().status == 'preparing';
+    }
+
+    function isValidAttendanceCreate() {
+      return incoming().id is string && incoming().id.size() > 0 && incoming().id.size() <= 128 &&
+        incoming().studentId == request.auth.uid &&
+        (incoming().source == 'live_broadcast' || incoming().source == 'course_quiz' || incoming().source == 'live_quiz_chat') &&
+        incoming().sessionKey is string && incoming().sessionKey.size() > 0 && incoming().sessionKey.size() <= 160 &&
+        incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 200;
+    }
+
+    function isValidDeviceLockPayload(studentId) {
+      return incoming().studentId == studentId &&
+        incoming().deviceId is string && incoming().deviceId.size() > 0 && incoming().deviceId.size() <= 160;
+    }
+
+    // =========================================================================
+    // Collection Rules
+    // =========================================================================
+
+    // Health check document (read-only ping)
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Users (PII isolated: owner or admin only)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) && (
+        (isOwner(userId) && isValidStudentSelfCreate(userId)) ||
+        (isAdmin() && isValidUserPayload())
+      );
+      allow update: if isValidId(userId) && isValidUserPayload() && (
+        isAdmin() ||
+        (isOwner(userId) && isValidUserUpdateByStudent())
+      );
+      allow delete: if isValidId(userId) && isSuperAdmin();
+    }
+
+    // Dynamic Academic Tracks (public read for registration screen; admin write)
+    match /tracks/{trackId} {
+      allow get: if isValidId(trackId);
+      allow list: if true;
+      allow create, update: if isValidId(trackId) && isAdmin() && isValidTrackPayload();
+      allow delete: if isValidId(trackId) && isSuperAdmin();
+    }
+
+    // Courses (readable by signed-in users & catalog visitors; admin write)
+    match /courses/{courseId} {
+      allow get: if isValidId(courseId);
+      allow list: if true;
+      allow create, update: if isValidId(courseId) && isAdmin() && isValidCoursePayload();
+      allow delete: if isValidId(courseId) && isAdmin();
+    }
+
+    // Store Items (public catalog read; admin write)
+    match /store_items/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if true;
+      allow create, update: if isValidId(itemId) && isAdmin() && isValidStoreItemPayload();
+      allow delete: if isValidId(itemId) && isAdmin();
+    }
+
+    // Store Orders (PII isolated: student sees own orders; admin sees/manages all)
+    match /store_orders/{orderId} {
+      allow get: if isValidId(orderId) && isSignedIn() && (
+        isAdmin() || resource.data.studentId == request.auth.uid
+      );
+      allow list: if isSignedIn() && (
+        isAdmin() || resource.data.studentId == request.auth.uid
+      );
+      allow create: if isValidId(orderId) && isSignedIn() && (
+        isValidStoreOrderCreate() || isAdmin()
+      );
+      allow update: if isValidId(orderId) && isAdmin() &&
+        (incoming().status == 'preparing' || incoming().status == 'shipped' || incoming().status == 'delivered');
+      allow delete: if isValidId(orderId) && isSuperAdmin();
+    }
+
+    // Attendance Records (student creates & reads own; admin reads/writes all)
+    match /attendance_records/{recordId} {
+      allow get: if isValidId(recordId) && isSignedIn() && (
+        isAdmin() || resource.data.studentId == request.auth.uid
+      );
+      allow list: if isSignedIn() && (
+        isAdmin() || resource.data.studentId == request.auth.uid
+      );
+      allow create: if isValidId(recordId) && isSignedIn() && (
+        isValidAttendanceCreate() || isAdmin()
+      );
+      allow update, delete: if isValidId(recordId) && isAdmin();
+    }
+
+    // Single Device Lock Records (student can read/bind initially; only admin can reset/delete)
+    match /device_locks/{studentId} {
+      allow get: if isValidId(studentId) && (isOwner(studentId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(studentId) && isValidDeviceLockPayload(studentId) && (
+        isOwner(studentId) || isAdmin()
+      );
+      allow update: if isValidId(studentId) && isValidDeviceLockPayload(studentId) && (
+        isAdmin() ||
+        (isOwner(studentId) && (existing().deviceId == null || existing().deviceId == '' || existing().deviceId == incoming().deviceId))
+      );
+      allow delete: if isValidId(studentId) && isAdmin();
+    }
+
+    // Live Quiz Chat Rooms (signed-in students read & submit answers; admin manages room)
+    match /live_quiz_rooms/{roomId} {
+      allow get: if isValidId(roomId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create, delete: if isValidId(roomId) && isAdmin();
+      allow update: if isValidId(roomId) && isSignedIn() && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['participants', 'questions'])
+      );
+    }
+
+    // Platform Settings (e.g. settings/platform -> supportWhatsappNumber)
+    // Publicly readable so unauthenticated students on Login/Landing screen can open WhatsApp support
+    match /settings/{docId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(docId) && isSuperAdmin();
+    }
+
+    // Activation Codes (admin lists/manages all codes; students cannot enumerate unused codes)
+    match /activation_codes/{codeId} {
+      allow list: if isAdmin();
+      allow get: if isValidId(codeId) && isSignedIn();
+      allow create, update: if isValidId(codeId) && isAdmin();
+      allow delete: if isValidId(codeId) && isSuperAdmin();
+    }
+
+    // Weekly Live Schedule (publicly readable; admin full CRUD)
+    match /weekly_schedule/{slotId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(slotId) && isAdmin();
+      allow delete: if isValidId(slotId) && isAdmin();
+    }
+
+    // Daily Assignments (signed-in students read; admin full CRUD)
+    match /assignments/{assignmentId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isValidId(assignmentId) && isAdmin();
+    }
+
+    // Student Complaints & Inquiries (student creates/reads own with pending status; admin manages/deletes)
+    match /complaints/{complaintId} {
+      allow get, list: if isSignedIn() && (isAdmin() || resource.data.studentId == request.auth.uid);
+      allow create: if isValidId(complaintId) && isSignedIn() && (
+        isAdmin() || (incoming().studentId == request.auth.uid && incoming().status == 'pending')
+      );
+      allow update, delete: if isValidId(complaintId) && isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      allow get, list: if isSignedIn() && (isAdmin() || resource.data.studentId == request.auth.uid);
+      allow create: if isValidId(inquiryId) && isSignedIn() && (
+        isAdmin() || (incoming().studentId == request.auth.uid && incoming().status == 'pending')
+      );
+      allow update, delete: if isValidId(inquiryId) && isAdmin();
+    }
+  }
+}

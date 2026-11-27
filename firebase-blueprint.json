@@ -1,0 +1,272 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Student, moderator, or Super Admin account profile with role, academic track, enrollment, subscription status, and single-device lock binding.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID matching Firebase Auth UID or admin ID."
+        },
+        "authUid": {
+          "type": "string",
+          "description": "Firebase Authentication UID linked to this user profile."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full display name of the student or staff member."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Iraqi phone number (07XXXXXXXXX) or login identifier."
+        },
+        "username": {
+          "type": "string",
+          "description": "Optional admin or moderator login username."
+        },
+        "parentPhone": {
+          "type": "string",
+          "description": "Optional parent WhatsApp phone number."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "admin"],
+          "description": "Primary RBAC role."
+        },
+        "isSuperAdmin": {
+          "type": "boolean",
+          "description": "True only for the platform owner (Super Admin)."
+        },
+        "adminRoleTitle": {
+          "type": "string",
+          "description": "Custom Arabic job title for moderators/admins."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "List of granular AdminPermissionKey strings for moderators."
+        },
+        "track": {
+          "type": "string",
+          "description": "Academic track ID (e.g. intermediate, vocational, university)."
+        },
+        "subStage": {
+          "type": "string",
+          "description": "Grade or academic year inside the track."
+        },
+        "branch": {
+          "type": "string",
+          "description": "Optional vocational branch."
+        },
+        "department": {
+          "type": "string",
+          "description": "Optional university department."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Bound device identifier enforcing single-device student login."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the account is active or suspended."
+        },
+        "enrolledCourseIds": {
+          "type": "array",
+          "description": "Course IDs unlocked for this student."
+        },
+        "unlockedLessonIds": {
+          "type": "array",
+          "description": "Individual lesson IDs unlocked for this student."
+        },
+        "subscriptionDueDate": {
+          "type": "string",
+          "description": "ISO date (YYYY-MM-DD) when monthly subscription is next due."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Account creation date string."
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "description": "Human-readable last login timestamp."
+        }
+      },
+      "required": ["id", "fullName", "phone", "role", "track", "subStage", "isActive"]
+    },
+    "TrackOption": {
+      "title": "TrackOption",
+      "description": "Dynamic academic stage definition (classes, vocational branches, university departments, and subjects).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "shortLabel": { "type": "string" },
+        "description": { "type": "string" },
+        "subStages": { "type": "array" },
+        "branches": { "type": "array" },
+        "departments": { "type": "array" },
+        "subjects": { "type": "array" },
+        "specializationLabel": { "type": "string" },
+        "coverImage": { "type": "string" }
+      },
+      "required": ["id", "label", "shortLabel", "subStages"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Academic course with recorded lessons, PDF notes, and interactive quizzes.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "track": { "type": "string" },
+        "subStage": { "type": "string" },
+        "branch": { "type": "string" },
+        "subject": { "type": "string" },
+        "instructor": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "description": { "type": "string" },
+        "totalHours": { "type": "string" },
+        "priceIqd": { "type": "number" },
+        "lessons": { "type": "array" },
+        "notes": { "type": "array" },
+        "quizzes": { "type": "array" }
+      },
+      "required": ["id", "title", "track", "subStage", "instructor"]
+    },
+    "StoreItem": {
+      "title": "StoreItem",
+      "description": "Printed booklet or exam predictions item available in the store.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "track": { "type": "string" },
+        "subStage": { "type": "string" },
+        "branch": { "type": "string" },
+        "category": { "type": "string", "enum": ["booklet", "predictions"] },
+        "description": { "type": "string" },
+        "priceIqd": { "type": "number" },
+        "coverImage": { "type": "string" },
+        "pagesInfo": { "type": "string" },
+        "inStock": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "subject", "track", "subStage", "category", "priceIqd", "inStock"]
+    },
+    "StoreOrder": {
+      "title": "StoreOrder",
+      "description": "Student order for printed booklets with Iraqi governorate delivery tracking.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "itemId": { "type": "string" },
+        "itemTitle": { "type": "string" },
+        "subject": { "type": "string" },
+        "trackLabel": { "type": "string" },
+        "subStage": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "phone": { "type": "string" },
+        "governorate": { "type": "string" },
+        "address": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unitPriceIqd": { "type": "number" },
+        "deliveryFeeIqd": { "type": "number" },
+        "totalIqd": { "type": "number" },
+        "status": { "type": "string", "enum": ["preparing", "shipped", "delivered"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "receiptNumber", "itemId", "itemTitle", "studentName", "phone", "governorate", "address", "quantity", "totalIqd", "status"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Attendance log entry for live broadcasts, course quizzes, and live quiz chat sessions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "source": { "type": "string", "enum": ["live_broadcast", "course_quiz", "live_quiz_chat"] },
+        "sessionKey": { "type": "string" },
+        "title": { "type": "string" },
+        "dateISO": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "studentId", "source", "sessionKey", "title", "dateISO", "timestamp"]
+    },
+    "DeviceLock": {
+      "title": "DeviceLock",
+      "description": "Single-device lock binding record per student UID to prevent unauthorized account sharing.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "phone": { "type": "string" },
+        "deviceId": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "deviceId"]
+    },
+    "LiveQuizRoom": {
+      "title": "LiveQuizRoom",
+      "description": "Real-time live quiz chat room state synchronized between teacher and students.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string", "enum": ["idle", "active", "ended"] },
+        "title": { "type": "string" },
+        "audience": { "type": "string" },
+        "track": { "type": "string" },
+        "subStage": { "type": "string" },
+        "branch": { "type": "string" },
+        "subject": { "type": "string" },
+        "courseId": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "defaultQuestionSeconds": { "type": "number" },
+        "startedAt": { "type": "number" },
+        "endsAt": { "type": "number" },
+        "participants": { "type": "array" },
+        "questions": { "type": "array" },
+        "finalLeaderboard": { "type": "array" },
+        "systemMessages": { "type": "array" }
+      },
+      "required": ["id", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles for students, moderators, and Super Admin."
+    },
+    "/tracks/{trackId}": {
+      "schema": { "$ref": "#/entities/TrackOption" },
+      "description": "Academic stages, sub-stages, branches, departments, and subjects."
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Courses with lessons, PDF notes, and quizzes."
+    },
+    "/store_items/{itemId}": {
+      "schema": { "$ref": "#/entities/StoreItem" },
+      "description": "Printed booklets and exam predictions catalog."
+    },
+    "/store_orders/{orderId}": {
+      "schema": { "$ref": "#/entities/StoreOrder" },
+      "description": "Booklet orders placed by students."
+    },
+    "/attendance_records/{recordId}": {
+      "schema": { "$ref": "#/entities/AttendanceRecord" },
+      "description": "Automated student attendance logs."
+    },
+    "/device_locks/{studentId}": {
+      "schema": { "$ref": "#/entities/DeviceLock" },
+      "description": "Single-device lock records keyed by student UID."
+    },
+    "/live_quiz_rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/LiveQuizRoom" },
+      "description": "Active live quiz chat room synced in real time."
+    }
+  }
+}

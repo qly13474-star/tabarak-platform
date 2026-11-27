@@ -163,20 +163,20 @@ export const AdminCodes: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white">
           إدارة وتوليد أكواد التفعيل والمبيعات
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-400">
           ولّدي أكواداً لدورة كاملة أو لمحاضرة فردية محددة مع ربط سعر الكود واحتساب إجمالي قيمة الأكواد المباعة والمستخدمة.
         </p>
       </div>
 
       {/* Revenue & Codes Value Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-[#0F172A] text-white p-5 space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-amber-300 font-bold">
+        <div className="rounded-2xl bg-[#110D1F] text-white p-5 space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
             <span>إجمالي قيمة الأكواد المباعة والمستخدمة</span>
-            <Wallet className="h-4 w-4 text-[#D4AF37]" />
+            <Wallet className="h-4 w-4 text-purple-300" />
           </div>
           <p className="font-mono text-2xl font-extrabold text-white tabular-nums">
             {formatIqd(financialStats.usedRevenue)}
@@ -186,26 +186,26 @@ export const AdminCodes: React.FC = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-1.5">
-          <span className="block text-xs font-bold text-slate-500">
+        <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 space-y-1.5">
+          <span className="block text-xs font-bold text-slate-400">
             قيمة الأكواد المتاحة للتوزيع
           </span>
-          <p className="font-mono text-2xl font-extrabold text-emerald-700 tabular-nums">
+          <p className="font-mono text-2xl font-extrabold text-emerald-300 tabular-nums">
             {formatIqd(financialStats.unusedValue)}
           </p>
-          <p className="text-xs text-slate-500 tabular-nums">
+          <p className="text-xs text-slate-400 tabular-nums">
             {financialStats.unusedCount} كود جاهز للتفعيل
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 space-y-1.5">
-          <span className="block text-xs font-bold text-slate-500">
+        <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 space-y-1.5">
+          <span className="block text-xs font-bold text-slate-400">
             القيمة الإجمالية لجميع الأكواد
           </span>
-          <p className="font-mono text-2xl font-extrabold text-slate-900 tabular-nums">
+          <p className="font-mono text-2xl font-extrabold text-white tabular-nums">
             {formatIqd(financialStats.totalValue)}
           </p>
-          <p className="text-xs text-slate-500 tabular-nums">
+          <p className="text-xs text-slate-400 tabular-nums">
             إجمالي {db.activationCodes.length} كود مسجّل في المنصة
           </p>
         </div>
@@ -214,25 +214,25 @@ export const AdminCodes: React.FC = () => {
       {/* Generator Panel */}
       <form
         onSubmit={handleGenerate}
-        className="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 space-y-4"
+        className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 p-5 sm:p-6 space-y-4"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-[#B48A1E]" />
-            <h2 className="text-sm font-extrabold text-slate-900">مولّد أكواد تفعيل جديد</h2>
+            <KeyRound className="h-4 w-4 text-purple-300" />
+            <h2 className="text-sm font-extrabold text-white">مولّد أكواد تفعيل جديد</h2>
           </div>
 
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white/[0.06]">
             <button
               type="button"
               onClick={() => handleSwitchTargetType('course')}
               className={`min-h-[36px] inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${
                 targetType === 'course'
-                  ? 'bg-[#0F172A] text-white'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#110D1F] text-white'
+                  : 'text-slate-300 hover:text-white'
               }`}
             >
-              <BookOpen className="h-3.5 w-3.5 text-[#D4AF37]" />
+              <BookOpen className="h-3.5 w-3.5 text-purple-300" />
               <span>كود لدورة كاملة</span>
             </button>
             <button
@@ -240,11 +240,11 @@ export const AdminCodes: React.FC = () => {
               onClick={() => handleSwitchTargetType('lesson')}
               className={`min-h-[36px] inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${
                 targetType === 'lesson'
-                  ? 'bg-[#0F172A] text-white'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#110D1F] text-white'
+                  : 'text-slate-300 hover:text-white'
               }`}
             >
-              <Video className="h-3.5 w-3.5 text-[#D4AF37]" />
+              <Video className="h-3.5 w-3.5 text-purple-300" />
               <span>كود لمحاضرة محددة</span>
             </button>
           </div>
@@ -252,14 +252,14 @@ export const AdminCodes: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           <div className={targetType === 'lesson' ? 'md:col-span-6' : 'md:col-span-5'}>
-            <label htmlFor="code-course" className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label htmlFor="code-course" className="block text-xs font-bold text-slate-200 mb-1.5">
               اختر الدورة
             </label>
             <select
               id="code-course"
               value={selectedCourse?.id ?? ''}
               onChange={(e) => handleSelectCourse(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
             >
               {db.courses.map((course) => (
                 <option key={course.id} value={course.id}>
@@ -272,14 +272,14 @@ export const AdminCodes: React.FC = () => {
 
           {targetType === 'lesson' && (
             <div className="md:col-span-6">
-              <label htmlFor="code-lesson" className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label htmlFor="code-lesson" className="block text-xs font-bold text-slate-200 mb-1.5">
                 اختر المحاضرة المحددة
               </label>
               <select
                 id="code-lesson"
                 value={selectedLessonId}
                 onChange={(e) => handleSelectLesson(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-medium text-white"
               >
                 {availableLessons.length === 0 ? (
                   <option value="">لا توجد محاضرات في هذه الدورة بعد</option>
@@ -296,7 +296,7 @@ export const AdminCodes: React.FC = () => {
           )}
 
           <div className={targetType === 'lesson' ? 'md:col-span-4' : 'md:col-span-3'}>
-            <label htmlFor="code-price" className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label htmlFor="code-price" className="block text-xs font-bold text-slate-200 mb-1.5">
               سعر الكود (د.ع)
             </label>
             <input
@@ -307,12 +307,12 @@ export const AdminCodes: React.FC = () => {
               dir="ltr"
               value={codePriceIqd}
               onChange={(e) => setCodePriceIqd(Math.max(0, Number(e.target.value)))}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 text-left font-mono text-sm font-bold text-slate-900 tabular-nums"
+              className="w-full min-h-[44px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-left font-mono text-sm font-bold text-white tabular-nums"
             />
           </div>
 
           <div className={targetType === 'lesson' ? 'md:col-span-4' : 'md:col-span-2'}>
-            <span className="block text-xs font-bold text-slate-700 mb-1.5">عدد الأكواد</span>
+            <span className="block text-xs font-bold text-slate-200 mb-1.5">عدد الأكواد</span>
             <div className="flex items-center gap-1">
               {[10, 25, 50].map((preset) => (
                 <button
@@ -321,8 +321,8 @@ export const AdminCodes: React.FC = () => {
                   onClick={() => setQuantity(preset)}
                   className={`flex-1 min-h-[44px] rounded-xl border font-mono text-xs font-bold tabular-nums transition-colors ${
                     quantity === preset
-                      ? 'bg-[#0F172A] text-white border-[#0F172A]'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-400'
+                      ? 'bg-[#110D1F] text-white border-purple-400'
+                      : 'bg-white/[0.04] text-slate-200 border-purple-500/20 hover:border-purple-400/50'
                   }`}
                 >
                   {preset}
@@ -335,9 +335,9 @@ export const AdminCodes: React.FC = () => {
             <button
               type="submit"
               disabled={targetType === 'lesson' && availableLessons.length === 0}
-              className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0F172A] px-3 text-xs sm:text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-40 transition-colors whitespace-nowrap"
+              className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-3 text-xs sm:text-sm font-bold text-white hover:brightness-110 disabled:opacity-40 transition-colors whitespace-nowrap"
             >
-              <PlusCircle className="h-4 w-4 text-[#D4AF37]" />
+              <PlusCircle className="h-4 w-4 text-purple-300" />
               <span>توليد {quantity} كود</span>
             </button>
           </div>
@@ -346,7 +346,7 @@ export const AdminCodes: React.FC = () => {
         {generatedBanner && (
           <div
             role="status"
-            className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-xs font-semibold text-emerald-900"
+            className="rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-2.5 text-xs font-semibold text-emerald-200"
           >
             {generatedBanner}
           </div>
@@ -354,8 +354,8 @@ export const AdminCodes: React.FC = () => {
       </form>
 
       {/* Filters & Search */}
-      <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden">
+        <div className="p-4 border-b border-purple-500/20 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {(
               [
@@ -370,8 +370,8 @@ export const AdminCodes: React.FC = () => {
                 onClick={() => setStatusFilter(tab.id)}
                 className={`min-h-[40px] rounded-xl px-3.5 text-xs font-bold transition-colors tabular-nums whitespace-nowrap ${
                   statusFilter === tab.id
-                    ? 'bg-[#0F172A] text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-[#110D1F] text-white'
+                    : 'bg-white/[0.06] text-slate-200 hover:bg-white/15'
                 }`}
               >
                 {tab.label}
@@ -386,7 +386,7 @@ export const AdminCodes: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="بحث بالكود أو الدورة أو المحاضرة أو الطالب..."
-                className="w-full sm:w-64 min-h-[40px] rounded-xl border border-slate-300 bg-slate-50 pr-9 pl-3 text-xs text-slate-900 focus:border-[#0F172A] focus:bg-white focus:outline-none"
+                className="w-full sm:w-64 min-h-[40px] rounded-xl border border-purple-500/25 bg-white/[0.04] pr-9 pl-3 text-xs text-white focus:border-purple-400 focus:bg-[#161029] focus:outline-none"
               />
               <Search className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -394,11 +394,11 @@ export const AdminCodes: React.FC = () => {
             <button
               type="button"
               onClick={handleCopyAllUnused}
-              className="min-h-[40px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+              className="min-h-[40px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3.5 text-xs font-bold text-slate-200 hover:bg-white/[0.08] whitespace-nowrap"
             >
               {copiedId === 'bulk-unused' ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
                   <span>تم نسخ المتاحة</span>
                 </>
               ) : (
@@ -415,7 +415,7 @@ export const AdminCodes: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-600">
+              <tr className="border-b border-purple-500/20 bg-white/[0.04] text-xs font-bold text-slate-300">
                 <th className="py-3 px-4">الكود</th>
                 <th className="py-3 px-4">الدورة / المحاضرة</th>
                 <th className="py-3 px-4">سعر الكود</th>
@@ -424,10 +424,10 @@ export const AdminCodes: React.FC = () => {
                 <th className="py-3 px-4 text-left">إجراء</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-purple-500/15">
               {filteredCodes.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-xs text-slate-500">
+                  <td colSpan={6} className="py-10 text-center text-xs text-slate-400">
                     لا توجد أكواد مطابقة للبحث الحالي.
                   </td>
                 </tr>
@@ -438,51 +438,51 @@ export const AdminCodes: React.FC = () => {
                     entry.priceIqd !== undefined ? entry.priceIqd : course?.priceIqd ?? 0;
 
                   return (
-                    <tr key={entry.id} className="hover:bg-slate-50/70">
+                    <tr key={entry.id} className="hover:bg-white/[0.06]">
                       <td
-                        className="py-3 px-4 font-mono text-xs font-bold text-slate-900 tabular-nums whitespace-nowrap"
+                        className="py-3 px-4 font-mono text-xs font-bold text-white tabular-nums whitespace-nowrap"
                         dir="ltr"
                       >
                         {entry.code}
                       </td>
                       <td className="py-3 px-4">
-                        <p className="text-xs font-bold text-slate-900">
+                        <p className="text-xs font-bold text-white">
                           {course?.title ?? 'دورة محذوفة'}
                         </p>
                         {entry.targetType === 'lesson' && entry.lessonTitle ? (
-                          <p className="text-[11px] font-bold text-[#B48A1E] mt-0.5">
+                          <p className="text-[11px] font-bold text-purple-300 mt-0.5">
                             محاضرة فردية: {entry.lessonTitle}
                           </p>
                         ) : (
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-[11px] text-slate-400">
                             دورة كاملة · {getTrackName(entry.track)} · أُنشئ {entry.createdAt}
                           </p>
                         )}
                       </td>
-                      <td className="py-3 px-4 font-mono text-xs font-extrabold text-slate-900 tabular-nums whitespace-nowrap">
+                      <td className="py-3 px-4 font-mono text-xs font-extrabold text-white tabular-nums whitespace-nowrap">
                         {effectivePrice === 0 ? 'مجاني' : formatIqd(effectivePrice)}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         {entry.isUsed ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
                             <CheckCircle2 className="h-3.5 w-3.5 text-slate-400" />
                             <span>مستخدم</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                            <Clock className="h-3.5 w-3.5 text-emerald-600" />
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-300">
+                            <Clock className="h-3.5 w-3.5 text-emerald-400" />
                             <span>جاهز للتفعيل</span>
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                      <td className="py-3 px-4 text-xs text-slate-300 whitespace-nowrap">
                         {entry.isUsed ? (
                           <div>
-                            <span className="block font-semibold text-slate-800">
+                            <span className="block font-semibold text-slate-100">
                               {entry.usedByStudentName}
                             </span>
                             <span
-                              className="font-mono text-[11px] text-slate-500 tabular-nums"
+                              className="font-mono text-[11px] text-slate-400 tabular-nums"
                               dir="ltr"
                             >
                               {entry.usedByPhone}
@@ -497,11 +497,11 @@ export const AdminCodes: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleCopy(entry.code, entry.id)}
-                            className="min-h-[34px] inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:border-[#0F172A] hover:text-slate-950"
+                            className="min-h-[34px] inline-flex items-center gap-1 rounded-lg border border-purple-500/20 bg-white/[0.045] backdrop-blur-xl px-2.5 text-xs font-bold text-slate-200 hover:border-purple-400/60 hover:text-white"
                           >
                             {copiedId === entry.id ? (
                               <>
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                <Check className="h-3.5 w-3.5 text-emerald-400" />
                                 <span>تم</span>
                               </>
                             ) : (
@@ -516,7 +516,7 @@ export const AdminCodes: React.FC = () => {
                             type="button"
                             onClick={() => setCodeToDelete({ id: entry.id, code: entry.code })}
                             aria-label={`حذف الكود ${entry.code}`}
-                            className="min-h-[34px] inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-2.5 text-xs font-bold text-red-700 hover:bg-red-100"
+                            className="min-h-[34px] inline-flex items-center justify-center rounded-lg border border-rose-400/35 bg-rose-500/15 px-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

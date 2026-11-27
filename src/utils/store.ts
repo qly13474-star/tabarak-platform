@@ -89,7 +89,7 @@ export function buildWhatsAppStudentFollowUpUrl(order: StoreOrder): string {
   const intl = normalizeIraqWhatsApp(order.phone);
   const statusLabel = getOrderStatusMeta(order.status).label;
   const msg = [
-    `مرحباً ${order.studentName}، معك منصة الأستاذة تبارك الأزيرجاوي بخصوص طلبك رقم (${order.receiptNumber}):`,
+    `مرحباً ${order.studentName}، معك منصة الأستاذة تبارك الزيرجاوي بخصوص طلبك رقم (${order.receiptNumber}):`,
     `الملزمة: ${order.itemTitle}`,
     `الحالة الحالية للطلب: ${statusLabel}`,
     `المبلغ الكلي: ${formatIqd(order.totalIqd)} (شامل التوصيل إلى ${order.governorate}).`,

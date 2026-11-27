@@ -1,5 +1,5 @@
 import { PaymentSettings, UserProfile } from '../types';
-import { getRelativeDateISO, getTrackLabel } from '../services/supabase';
+import { getRelativeDateISO, getTrackLabel } from '../services/platformData';
 
 export const GRACE_PERIOD_DAYS = 5;
 export const REMINDER_WINDOW_DAYS = 3;

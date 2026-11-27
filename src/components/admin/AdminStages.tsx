@@ -266,10 +266,10 @@ export const AdminStages: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white">
             إدارة المراحل والأقسام والمواد الدراسية
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-400">
             تحكّمي يدوياً بنسبة 100% بالمراحل والصفوف والفروع المهنية والأقسام الجامعية والمواد الدراسية، لتتحدّث فوراً في جميع أنحاء المنصة.
           </p>
         </div>
@@ -277,9 +277,9 @@ export const AdminStages: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowCreateForm((v) => !v)}
-          className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-4 text-xs sm:text-sm font-extrabold text-white hover:bg-slate-800 whitespace-nowrap shrink-0"
+          className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-4 text-xs sm:text-sm font-extrabold text-white hover:brightness-110 whitespace-nowrap shrink-0"
         >
-          <Plus className="h-4 w-4 text-[#D4AF37]" />
+          <Plus className="h-4 w-4 text-purple-300" />
           <span>{showCreateForm ? 'إغلاق النموذج' : 'إضافة مرحلة دراسية جديدة'}</span>
         </button>
       </div>
@@ -287,7 +287,7 @@ export const AdminStages: React.FC = () => {
       {feedback && (
         <div
           role="status"
-          className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900"
+          className="flex items-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-400/35 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-200"
         >
           <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
           <span>{feedback}</span>
@@ -298,18 +298,18 @@ export const AdminStages: React.FC = () => {
       {showCreateForm && (
         <form
           onSubmit={handleCreateTrack}
-          className="rounded-2xl bg-white border-2 border-[#0F172A]/15 p-5 sm:p-6 space-y-4"
+          className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border-2 border-purple-500/25 p-5 sm:p-6 space-y-4"
         >
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-[#B48A1E]" />
-            <h2 className="text-base font-extrabold text-slate-900">
+            <Layers className="h-5 w-5 text-purple-300" />
+            <h2 className="text-base font-extrabold text-white">
               إنشاء مرحلة دراسية / مسار جديد
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 اسم المرحلة الدراسية
               </label>
               <input
@@ -318,12 +318,12 @@ export const AdminStages: React.FC = () => {
                 value={newStageLabel}
                 onChange={(e) => setNewStageLabel(e.target.value)}
                 placeholder="مثال: الإعدادية العام (العلمي والأدبي)"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 وصف مختصر للمرحلة
               </label>
               <input
@@ -331,12 +331,12 @@ export const AdminStages: React.FC = () => {
                 value={newStageDesc}
                 onChange={(e) => setNewStageDesc(e.target.value)}
                 placeholder="مثال: الرابع والخامس والسادس العلمي والأدبي"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 الصفوف الدراسية (افصلي بينها بفاصلة)
               </label>
               <input
@@ -345,12 +345,12 @@ export const AdminStages: React.FC = () => {
                 value={newStageClasses}
                 onChange={(e) => setNewStageClasses(e.target.value)}
                 placeholder="الرابع الإعدادي، الخامس الإعدادي، السادس الإعدادي"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 الفروع / الأقسام (اختياري — افصلي بفاصلة)
               </label>
               <input
@@ -358,12 +358,12 @@ export const AdminStages: React.FC = () => {
                 value={newStageSpecs}
                 onChange={(e) => setNewStageSpecs(e.target.value)}
                 placeholder="مثال: العلمي، الأدبي (أو اتركيه فارغاً)"
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 المواد الدراسية لهذه المرحلة (اختياري — افصلي بفاصلة)
               </label>
               <input
@@ -371,13 +371,13 @@ export const AdminStages: React.FC = () => {
                 value={newStageSubjects}
                 onChange={(e) => setNewStageSubjects(e.target.value)}
                 placeholder="مثال: اللغة الإنجليزية، الرياضيات، الفيزياء، الحاسوب..."
-                className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
               />
             </div>
 
             {newStageSpecs.trim() && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-200 mb-1.5">
                   تسمية حقل التخصص في التسجيل
                 </label>
                 <input
@@ -385,7 +385,7 @@ export const AdminStages: React.FC = () => {
                   value={newStageSpecsLabel}
                   onChange={(e) => setNewStageSpecsLabel(e.target.value)}
                   placeholder="الفرع / القسم"
-                  className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-[#0F172A] focus:outline-none"
+                  className="w-full min-h-[44px] rounded-xl border border-purple-500/25 px-3.5 text-sm focus:border-purple-400 focus:outline-none"
                 />
               </div>
             )}
@@ -394,14 +394,14 @@ export const AdminStages: React.FC = () => {
           <div className="flex items-center gap-2 pt-2">
             <button
               type="submit"
-              className="min-h-[44px] rounded-xl bg-[#0F172A] px-5 text-sm font-extrabold text-white hover:bg-slate-800"
+              className="min-h-[44px] rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-5 text-sm font-extrabold text-white hover:brightness-110"
             >
               حفظ وإضافة المرحلة
             </button>
             <button
               type="button"
               onClick={() => setShowCreateForm(false)}
-              className="min-h-[44px] rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-600"
+              className="min-h-[44px] rounded-xl border border-purple-500/25 px-4 text-sm font-semibold text-slate-300"
             >
               إلغاء
             </button>
@@ -422,35 +422,35 @@ export const AdminStages: React.FC = () => {
           return (
             <section
               key={track.id}
-              className="rounded-2xl bg-white border border-slate-200 overflow-hidden"
+              className="rounded-2xl bg-white/[0.045] backdrop-blur-xl border border-purple-500/20 overflow-hidden"
             >
               {/* Stage Header */}
-              <div className="bg-slate-50 border-b border-slate-200 px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="bg-white/[0.04] border-b border-purple-500/20 px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 {isEditingHeader ? (
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <input
                       type="text"
                       value={editTrackLabel}
                       onChange={(e) => setEditTrackLabel(e.target.value)}
-                      className="min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900"
+                      className="min-h-[40px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-sm font-bold text-white"
                     />
                     <input
                       type="text"
                       value={editTrackDesc}
                       onChange={(e) => setEditTrackDesc(e.target.value)}
-                      className="min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-700"
+                      className="min-h-[40px] rounded-xl border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-xs text-slate-200"
                     />
                   </div>
                 ) : (
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <GraduationCap className="h-4 w-4 text-[#B48A1E]" />
-                      <h2 className="text-base font-extrabold text-slate-900">{track.label}</h2>
-                      <span className="text-xs text-slate-500 tabular-nums">
+                      <GraduationCap className="h-4 w-4 text-purple-300" />
+                      <h2 className="text-base font-extrabold text-white">{track.label}</h2>
+                      <span className="text-xs text-slate-400 tabular-nums">
                         · {studentsInTrack} طالب · {coursesInTrack} دورات
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">{track.description}</p>
+                    <p className="text-xs text-slate-400">{track.description}</p>
                   </div>
                 )}
 
@@ -468,7 +468,7 @@ export const AdminStages: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setEditingTrackId(null)}
-                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-600"
+                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-3 text-xs font-bold text-slate-300"
                       >
                         <X className="h-3.5 w-3.5" />
                         <span>إلغاء</span>
@@ -483,15 +483,15 @@ export const AdminStages: React.FC = () => {
                           setEditTrackLabel(track.label);
                           setEditTrackDesc(track.description);
                         }}
-                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:border-[#0F172A]"
+                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-purple-500/20 bg-white/[0.045] backdrop-blur-xl px-3 text-xs font-bold text-slate-200 hover:border-purple-400/60"
                       >
-                        <Pencil className="h-3.5 w-3.5 text-[#B48A1E]" />
+                        <Pencil className="h-3.5 w-3.5 text-purple-300" />
                         <span>تعديل الاسم</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => requestDeleteTrack(track)}
-                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-700 hover:bg-red-100"
+                        className="min-h-[36px] inline-flex items-center gap-1 rounded-lg border border-rose-400/35 bg-rose-500/15 px-3 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span>حذف المرحلة</span>
@@ -506,8 +506,8 @@ export const AdminStages: React.FC = () => {
                 {/* Sub-Stages / Classes Column */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                      <Layers className="h-3.5 w-3.5 text-[#B48A1E]" />
+                    <h3 className="text-xs font-extrabold text-slate-100 flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5 text-purple-300" />
                       <span>الصفوف والمراحل الفرعية ({track.subStages.length})</span>
                     </h3>
                   </div>
@@ -522,7 +522,7 @@ export const AdminStages: React.FC = () => {
                       return (
                         <div
                           key={`${cls}-${idx}`}
-                          className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5"
+                          className="flex items-center justify-between gap-2 rounded-xl border border-purple-500/20 bg-white/[0.035] px-3.5 py-2.5"
                         >
                           {isEditingThis ? (
                             <div className="flex-1 flex items-center gap-2">
@@ -532,7 +532,7 @@ export const AdminStages: React.FC = () => {
                                 onChange={(e) =>
                                   setEditingItem({ ...editingItem, value: e.target.value })
                                 }
-                                className="flex-1 min-h-[34px] rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-900"
+                                className="flex-1 min-h-[34px] rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-2.5 text-xs font-bold text-white"
                               />
                               <button
                                 type="button"
@@ -545,7 +545,7 @@ export const AdminStages: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setEditingItem(null)}
-                                className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600"
+                                className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl text-slate-300"
                                 aria-label="إلغاء"
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -553,7 +553,7 @@ export const AdminStages: React.FC = () => {
                             </div>
                           ) : (
                             <>
-                              <span className="text-xs sm:text-sm font-bold text-slate-900">
+                              <span className="text-xs sm:text-sm font-bold text-white">
                                 {cls}
                               </span>
                               <div className="flex items-center gap-1 shrink-0">
@@ -568,7 +568,7 @@ export const AdminStages: React.FC = () => {
                                     })
                                   }
                                   aria-label={`تعديل ${cls}`}
-                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-[#0F172A]"
+                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/15 hover:text-white"
                                 >
                                   <Pencil className="h-3.5 w-3.5" />
                                 </button>
@@ -576,7 +576,7 @@ export const AdminStages: React.FC = () => {
                                   type="button"
                                   onClick={() => requestDeleteClass(track, idx, cls)}
                                   aria-label={`حذف ${cls}`}
-                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
+                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/20"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
@@ -603,14 +603,14 @@ export const AdminStages: React.FC = () => {
                         }
                       }}
                       placeholder="أضيفي صفاً جديداً (مثلاً: الثالث متوسط — متميزين)"
-                      className="flex-1 min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                      className="flex-1 min-h-[40px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-xs text-white focus:border-purple-400 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddClass(track)}
-                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl bg-[#0F172A] px-3.5 text-xs font-bold text-white hover:bg-slate-800 whitespace-nowrap"
+                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl bg-gradient-to-l from-purple-600 via-violet-600 to-fuchsia-600 shadow-[0_8px_22px_-6px_rgba(147,51,234,0.65)] px-3.5 text-xs font-bold text-white hover:brightness-110 whitespace-nowrap"
                     >
-                      <Plus className="h-3.5 w-3.5 text-[#D4AF37]" />
+                      <Plus className="h-3.5 w-3.5 text-purple-300" />
                       <span>إضافة صف</span>
                     </button>
                   </div>
@@ -619,8 +619,8 @@ export const AdminStages: React.FC = () => {
                 {/* Branches / Departments Column */}
                 <div className="space-y-3 lg:border-r lg:border-slate-100 lg:pr-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                      <FolderTree className="h-3.5 w-3.5 text-[#B48A1E]" />
+                    <h3 className="text-xs font-extrabold text-slate-100 flex items-center gap-1.5">
+                      <FolderTree className="h-3.5 w-3.5 text-purple-300" />
                       <span>
                         {specInfo.label} ({specInfo.list.length})
                       </span>
@@ -628,7 +628,7 @@ export const AdminStages: React.FC = () => {
                   </div>
 
                   {specInfo.list.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3.5 text-xs text-slate-500">
+                    <p className="rounded-xl border border-dashed border-purple-500/20 bg-white/[0.035] p-3.5 text-xs text-slate-400">
                       لا توجد فروع أو أقسام فرعية لهذه المرحلة حالياً. يمكنكِ إضافة تخصص أو قسم في أي وقت بالأسفل.
                     </p>
                   ) : (
@@ -642,7 +642,7 @@ export const AdminStages: React.FC = () => {
                         return (
                           <div
                             key={`${spec}-${idx}`}
-                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5"
+                            className="flex items-center justify-between gap-2 rounded-xl border border-purple-500/20 bg-white/[0.035] px-3.5 py-2.5"
                           >
                             {isEditingThis ? (
                               <div className="flex-1 flex items-center gap-2">
@@ -652,7 +652,7 @@ export const AdminStages: React.FC = () => {
                                   onChange={(e) =>
                                     setEditingItem({ ...editingItem, value: e.target.value })
                                   }
-                                  className="flex-1 min-h-[34px] rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-900"
+                                  className="flex-1 min-h-[34px] rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-2.5 text-xs font-bold text-white"
                                 />
                                 <button
                                   type="button"
@@ -665,7 +665,7 @@ export const AdminStages: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => setEditingItem(null)}
-                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600"
+                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl text-slate-300"
                                   aria-label="إلغاء"
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -673,7 +673,7 @@ export const AdminStages: React.FC = () => {
                               </div>
                             ) : (
                               <>
-                                <span className="text-xs sm:text-sm font-bold text-slate-900">
+                                <span className="text-xs sm:text-sm font-bold text-white">
                                   {spec}
                                 </span>
                                 <div className="flex items-center gap-1 shrink-0">
@@ -688,7 +688,7 @@ export const AdminStages: React.FC = () => {
                                       })
                                     }
                                     aria-label={`تعديل ${spec}`}
-                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-[#0F172A]"
+                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/15 hover:text-white"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
@@ -696,7 +696,7 @@ export const AdminStages: React.FC = () => {
                                     type="button"
                                     onClick={() => requestDeleteSpec(track, idx, spec)}
                                     aria-label={`حذف ${spec}`}
-                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
+                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/20"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
@@ -728,14 +728,14 @@ export const AdminStages: React.FC = () => {
                           ? 'أضيفي قسماً جامعياً (مثلاً: هندسة البرمجيات)'
                           : 'أضيفي فرعاً أو تخصصاً (مثلاً: الفرع الزراعي)'
                       }
-                      className="flex-1 min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                      className="flex-1 min-h-[40px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-xs text-white focus:border-purple-400 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddSpec(track)}
-                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl border border-[#0F172A] bg-white px-3.5 text-xs font-bold text-[#0F172A] hover:bg-slate-50 whitespace-nowrap"
+                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl border border-purple-400 bg-white/[0.045] backdrop-blur-xl px-3.5 text-xs font-bold text-white hover:bg-white/[0.08] whitespace-nowrap"
                     >
-                      <Plus className="h-3.5 w-3.5 text-[#B48A1E]" />
+                      <Plus className="h-3.5 w-3.5 text-purple-300" />
                       <span>إضافة قسم/فرع</span>
                     </button>
                   </div>
@@ -744,14 +744,14 @@ export const AdminStages: React.FC = () => {
                 {/* Subjects Column */}
                 <div className="space-y-3 xl:border-r xl:border-slate-100 xl:pr-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                      <BookOpen className="h-3.5 w-3.5 text-[#B48A1E]" />
+                    <h3 className="text-xs font-extrabold text-slate-100 flex items-center gap-1.5">
+                      <BookOpen className="h-3.5 w-3.5 text-purple-300" />
                       <span>المواد الدراسية ({(track.subjects ?? []).length})</span>
                     </h3>
                   </div>
 
                   {(track.subjects ?? []).length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3.5 text-xs text-slate-500">
+                    <p className="rounded-xl border border-dashed border-purple-500/20 bg-white/[0.035] p-3.5 text-xs text-slate-400">
                       لم تُضَف مواد لهذه المرحلة بعد. أضيفي أي مادة بالأسفل لتظهر في الدورات والكوزات وجدول البث والمشتريات.
                     </p>
                   ) : (
@@ -765,7 +765,7 @@ export const AdminStages: React.FC = () => {
                         return (
                           <div
                             key={`${subj}-${idx}`}
-                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5"
+                            className="flex items-center justify-between gap-2 rounded-xl border border-purple-500/20 bg-white/[0.035] px-3.5 py-2.5"
                           >
                             {isEditingThis ? (
                               <div className="flex-1 flex items-center gap-2">
@@ -775,7 +775,7 @@ export const AdminStages: React.FC = () => {
                                   onChange={(e) =>
                                     setEditingItem({ ...editingItem, value: e.target.value })
                                   }
-                                  className="flex-1 min-h-[34px] rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-900"
+                                  className="flex-1 min-h-[34px] rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl px-2.5 text-xs font-bold text-white"
                                 />
                                 <button
                                   type="button"
@@ -788,7 +788,7 @@ export const AdminStages: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => setEditingItem(null)}
-                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600"
+                                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-purple-500/25 bg-white/[0.045] backdrop-blur-xl text-slate-300"
                                   aria-label="إلغاء"
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -796,7 +796,7 @@ export const AdminStages: React.FC = () => {
                               </div>
                             ) : (
                               <>
-                                <span className="text-xs sm:text-sm font-bold text-slate-900">
+                                <span className="text-xs sm:text-sm font-bold text-white">
                                   {subj}
                                 </span>
                                 <div className="flex items-center gap-1 shrink-0">
@@ -811,7 +811,7 @@ export const AdminStages: React.FC = () => {
                                       })
                                     }
                                     aria-label={`تعديل ${subj}`}
-                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-[#0F172A]"
+                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/15 hover:text-white"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
@@ -819,7 +819,7 @@ export const AdminStages: React.FC = () => {
                                     type="button"
                                     onClick={() => requestDeleteSubject(track, idx, subj)}
                                     aria-label={`حذف ${subj}`}
-                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
+                                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/20"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
@@ -847,14 +847,14 @@ export const AdminStages: React.FC = () => {
                         }
                       }}
                       placeholder="أضيفي مادة (مثلاً: اللغة الإنجليزية، الرياضيات...)"
-                      className="flex-1 min-h-[40px] rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 focus:border-[#0F172A] focus:outline-none"
+                      className="flex-1 min-h-[40px] rounded-xl border border-purple-500/25 bg-[#110D1F]/85 px-3 text-xs text-white focus:border-purple-400 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddSubject(track)}
-                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-300 px-3.5 text-xs font-extrabold text-slate-900 hover:bg-amber-100 whitespace-nowrap"
+                      className="min-h-[40px] inline-flex items-center gap-1 rounded-xl bg-amber-500/15 border border-amber-400/40 px-3.5 text-xs font-extrabold text-white hover:bg-amber-500/25 whitespace-nowrap"
                     >
-                      <Plus className="h-3.5 w-3.5 text-[#B48A1E]" />
+                      <Plus className="h-3.5 w-3.5 text-purple-300" />
                       <span>إضافة مادة</span>
                     </button>
                   </div>

@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from '@supabase/supabase-js';
 import { AccessToken } from 'livekit-server-sdk';
 
 // Load .env.local first (if created locally), then .env
@@ -126,7 +125,7 @@ function verifyServerAdminToken(
 
     return {
       id: body.id,
-      fullName: body.fullName || 'الأستاذة تبارك الأزيرجاوي',
+      fullName: body.fullName || 'الأستاذة تبارك الزيرجاوي',
       role: 'admin',
       isSuperAdmin: Boolean(body.isSuperAdmin),
     };
@@ -139,7 +138,7 @@ function buildSuperAdminProfile() {
   const phone = getConfiguredSuperAdminPhone();
   return {
     id: 'admin-tabarak',
-    fullName: 'الأستاذة تبارك الأزيرجاوي',
+    fullName: 'الأستاذة تبارك الزيرجاوي',
     phone,
     username: DEFAULT_SUPER_ADMIN_USERNAME,
     password: '',
@@ -172,19 +171,66 @@ function getLiveKitServerConfig() {
   };
 }
 
-function getSupabaseServerConfig() {
-  const url = cleanEnvValue(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL);
-  const serviceRoleKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
-  const anonKey = cleanEnvValue(process.env.VITE_SUPABASE_ANON_KEY);
+function getFirebaseServerConfig() {
+  const projectId = cleanEnvValue(process.env.FIREBASE_PROJECT_ID) || 'tabarak-platform';
+  const apiKey =
+    cleanEnvValue(process.env.FIREBASE_WEB_API_KEY) ||
+    'AIzaSyCtHwPx2K60aR-QQexoL_uLYpM9w9dFjvg';
   return {
-    url,
-    serviceRoleKey,
-    anonKey,
-    configured: Boolean(url && (serviceRoleKey || anonKey)),
+    projectId,
+    apiKey,
+    configured: Boolean(projectId && apiKey),
   };
 }
 
-function isSubscriptionExpiredWithGrace(dueDateIso?: string | null, graceDays = 3): boolean {
+function decodeFirestoreField(field: unknown): unknown {
+  if (!field || typeof field !== 'object') return undefined;
+  const f = field as Record<string, unknown>;
+  if ('stringValue' in f) return f.stringValue;
+  if ('booleanValue' in f) return Boolean(f.booleanValue);
+  if ('integerValue' in f) return Number(f.integerValue);
+  if ('doubleValue' in f) return Number(f.doubleValue);
+  if ('nullValue' in f) return null;
+  if ('arrayValue' in f && f.arrayValue && typeof f.arrayValue === 'object') {
+    const values = (f.arrayValue as { values?: unknown[] }).values;
+    return Array.isArray(values) ? values.map((v) => decodeFirestoreField(v)) : [];
+  }
+  if ('mapValue' in f && f.mapValue && typeof f.mapValue === 'object') {
+    const fields = (f.mapValue as { fields?: Record<string, unknown> }).fields || {};
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(fields)) {
+      out[k] = decodeFirestoreField(v);
+    }
+    return out;
+  }
+  return undefined;
+}
+
+async function fetchFirestoreDocumentWithBearer(
+  projectId: string,
+  docPath: string,
+  idToken: string
+): Promise<Record<string, unknown> | null> {
+  const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(
+    projectId
+  )}/databases/(default)/documents/${docPath}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${idToken}` },
+  });
+  if (!res.ok) return null;
+  const body = (await res.json().catch(() => null)) as {
+    fields?: Record<string, unknown>;
+  } | null;
+  if (!body?.fields) return null;
+  const decoded: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body.fields)) {
+    decoded[k] = decodeFirestoreField(v);
+  }
+  return decoded;
+}
+
+function isSubscriptionExpiredWithGrace(dueDateIso?: string | null, graceDays = 5): boolean {
   if (!dueDateIso) return false;
   const due = new Date(`${dueDateIso}T23:59:59Z`);
   if (Number.isNaN(due.getTime())) return false;
@@ -231,59 +277,77 @@ async function verifyCallerForLiveKit(params: {
     };
   }
 
-  // 2. Otherwise verify Supabase JWT & check active subscription / course enrollment
-  const sbConfig = getSupabaseServerConfig();
-  if (!sbConfig.configured) {
+  // 2. Otherwise verify Firebase ID token & check Firestore profile / subscription / course enrollment
+  const fbConfig = getFirebaseServerConfig();
+  if (!fbConfig.configured) {
     return {
       ok: false,
       status: 503,
-      error: 'إعدادات Supabase غير مكتملة على الخادم للتحقق من صلاحية الدخول للبث.',
+      error: 'إعدادات Firebase غير مكتملة على الخادم للتحقق من صلاحية الدخول للبث.',
     };
   }
 
-  const supabaseServer = createClient(
-    sbConfig.url,
-    sbConfig.serviceRoleKey || sbConfig.anonKey,
-    sbConfig.serviceRoleKey
-      ? { auth: { autoRefreshToken: false, persistSession: false } }
-      : {
-          auth: { autoRefreshToken: false, persistSession: false },
-          global: { headers: { Authorization: `Bearer ${bearerToken}` } },
-        }
-  );
-
-  const { data: authData, error: authError } = await supabaseServer.auth.getUser(bearerToken);
-  if (authError || !authData?.user) {
+  let firebaseUid = '';
+  let firebaseEmail = '';
+  try {
+    const lookupRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(
+        fbConfig.apiKey
+      )}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: bearerToken }),
+      }
+    );
+    if (!lookupRes.ok) {
+      return {
+        ok: false,
+        status: 401,
+        error: 'جلسة المستخدم غير صالحة أو منتهية الصلاحية. يرجى إعادة تسجيل الدخول.',
+      };
+    }
+    const lookupData = (await lookupRes.json()) as {
+      users?: { localId?: string; email?: string }[];
+    };
+    const fbUser = lookupData.users?.[0];
+    if (!fbUser?.localId) {
+      return {
+        ok: false,
+        status: 401,
+        error: 'جلسة المستخدم غير صالحة أو منتهية الصلاحية. يرجى إعادة تسجيل الدخول.',
+      };
+    }
+    firebaseUid = fbUser.localId;
+    firebaseEmail = fbUser.email || '';
+  } catch {
     return {
       ok: false,
-      status: 401,
-      error: 'جلسة المستخدم غير صالحة أو منتهية الصلاحية. يرجى إعادة تسجيل الدخول.',
+      status: 503,
+      error: 'تعذر الاتصال بخدمة التحقق من Firebase Authentication.',
     };
   }
 
-  const authUser = authData.user;
+  const profile = await fetchFirestoreDocumentWithBearer(
+    fbConfig.projectId,
+    `users/${encodeURIComponent(firebaseUid)}`,
+    bearerToken
+  );
 
-  let { data: profile, error: profileError } = await supabaseServer
-    .from('users')
-    .select(
-      'id, full_name, role, is_super_admin, permissions, is_active, enrolled_course_ids, subscription_due_date'
-    )
-    .eq('auth_user_id', authUser.id)
-    .maybeSingle();
-
-  if (!profile && !profileError) {
-    const fallbackRes = await supabaseServer
-      .from('users')
-      .select(
-        'id, full_name, role, is_super_admin, permissions, is_active, enrolled_course_ids, subscription_due_date'
-      )
-      .eq('id', authUser.id)
-      .maybeSingle();
-    profile = fallbackRes.data;
-    profileError = fallbackRes.error;
-  }
-
-  if (profileError || !profile) {
+  // Allow configured Super Admin email even if users/{uid} document has not been seeded yet
+  if (!profile) {
+    if (verifySuperAdminIdentifier(firebaseEmail)) {
+      return {
+        ok: true,
+        user: {
+          id: firebaseUid,
+          fullName: 'الأستاذة تبارك الزيرجاوي',
+          role: 'admin',
+          canPublish: true,
+          roomAdmin: true,
+        },
+      };
+    }
     return {
       ok: false,
       status: 403,
@@ -291,7 +355,8 @@ async function verifyCallerForLiveKit(params: {
     };
   }
 
-  if (profile.is_active === false) {
+  const isActive = profile.isActive !== false && profile.is_active !== false;
+  if (!isActive) {
     return {
       ok: false,
       status: 403,
@@ -299,9 +364,15 @@ async function verifyCallerForLiveKit(params: {
     };
   }
 
-  if (profile.role === 'admin') {
-    const perms: string[] = Array.isArray(profile.permissions) ? profile.permissions : [];
-    const allowedLive = Boolean(profile.is_super_admin) || perms.includes('live_announcements');
+  const fullName = String(profile.fullName || profile.full_name || 'مستخدم');
+  const role = profile.role === 'admin' ? 'admin' : 'student';
+
+  if (role === 'admin') {
+    const perms: string[] = Array.isArray(profile.permissions)
+      ? profile.permissions.filter((p): p is string => typeof p === 'string')
+      : [];
+    const isSuper = Boolean(profile.isSuperAdmin ?? profile.is_super_admin);
+    const allowedLive = isSuper || perms.includes('live_announcements');
     if (!allowedLive) {
       return {
         ok: false,
@@ -312,8 +383,8 @@ async function verifyCallerForLiveKit(params: {
     return {
       ok: true,
       user: {
-        id: String(profile.id),
-        fullName: String(profile.full_name || 'الأستاذة تبارك الأزيرجاوي'),
+        id: String(profile.id || firebaseUid),
+        fullName: fullName || 'الأستاذة تبارك الزيرجاوي',
         role: 'admin',
         canPublish: true,
         roomAdmin: true,
@@ -321,7 +392,12 @@ async function verifyCallerForLiveKit(params: {
     };
   }
 
-  if (isSubscriptionExpiredWithGrace(profile.subscription_due_date, 3)) {
+  const dueDate =
+    typeof (profile.subscriptionDueDate ?? profile.subscription_due_date) === 'string'
+      ? String(profile.subscriptionDueDate ?? profile.subscription_due_date)
+      : null;
+
+  if (isSubscriptionExpiredWithGrace(dueDate, 5)) {
     return {
       ok: false,
       status: 403,
@@ -330,16 +406,18 @@ async function verifyCallerForLiveKit(params: {
   }
 
   if (params.courseId) {
-    const { data: course } = await supabaseServer
-      .from('courses')
-      .select('id, price_iqd')
-      .eq('id', params.courseId)
-      .maybeSingle();
+    const course = await fetchFirestoreDocumentWithBearer(
+      fbConfig.projectId,
+      `courses/${encodeURIComponent(params.courseId)}`,
+      bearerToken
+    );
 
-    const enrolledCourses: string[] = Array.isArray(profile.enrolled_course_ids)
-      ? profile.enrolled_course_ids
+    const enrolledRaw = profile.enrolledCourseIds ?? profile.enrolled_course_ids;
+    const enrolledCourses: string[] = Array.isArray(enrolledRaw)
+      ? enrolledRaw.filter((c): c is string => typeof c === 'string')
       : [];
-    const isPaidCourse = course && Number(course.price_iqd || 0) > 0;
+    const coursePrice = Number(course?.priceIqd ?? course?.price_iqd ?? 0);
+    const isPaidCourse = Boolean(course) && coursePrice > 0;
     if (isPaidCourse && !enrolledCourses.includes(params.courseId)) {
       return {
         ok: false,
@@ -352,8 +430,8 @@ async function verifyCallerForLiveKit(params: {
   return {
     ok: true,
     user: {
-      id: String(profile.id),
-      fullName: String(profile.full_name || 'طالب'),
+      id: String(profile.id || firebaseUid),
+      fullName: fullName || 'طالب',
       role: 'student',
       canPublish: false,
       roomAdmin: false,
@@ -480,10 +558,10 @@ async function startServer() {
   // Public health & LiveKit readiness check (never leaks secrets)
   app.get('/api/livekit/status', (_req: Request, res: Response) => {
     const lk = getLiveKitServerConfig();
-    const sb = getSupabaseServerConfig();
+    const fb = getFirebaseServerConfig();
     res.json({
       livekitConfigured: lk.configured,
-      supabaseConfigured: sb.configured,
+      firebaseConfigured: fb.configured,
     });
   });
 
@@ -559,9 +637,73 @@ async function startServer() {
   });
 
   if (!IS_PRODUCTION) {
+    // Serve a WebSocket-free /@vite/client shim when HMR is disabled so Vite never attempts
+    // a failing WebSocket connection (Error: WebSocket closed without opened.) behind HTTPS proxies.
+    app.get('/@vite/client', (_req: Request, res: Response) => {
+      res.type('application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.send(`
+const sheetsMap = new Map();
+
+export function updateStyle(id, content) {
+  let style = sheetsMap.get(id);
+  if (!style) {
+    style = document.createElement('style');
+    style.setAttribute('type', 'text/css');
+    style.setAttribute('data-vite-dev-id', id);
+    style.textContent = content;
+    document.head.appendChild(style);
+    sheetsMap.set(id, style);
+  } else {
+    style.textContent = content;
+  }
+}
+
+export function removeStyle(id) {
+  const style = sheetsMap.get(id);
+  if (style) {
+    document.head.removeChild(style);
+    sheetsMap.delete(id);
+  }
+}
+
+export function createHotContext() {
+  const noop = () => {};
+  return {
+    data: {},
+    accept: noop,
+    acceptExports: noop,
+    dispose: noop,
+    prune: noop,
+    decline: noop,
+    invalidate: noop,
+    on: noop,
+    off: noop,
+    send: noop,
+  };
+}
+
+export function injectQuery(url, queryToInject) {
+  if (typeof url !== 'string' || (!url.startsWith('.') && !url.startsWith('/'))) {
+    return url;
+  }
+  const pathname = url.replace(/[?#].*$/, '');
+  const search = url.slice(pathname.length).replace(/#.*$/, '');
+  const hash = url.includes('#') ? url.slice(url.indexOf('#')) : '';
+  return pathname + '?' + queryToInject + (search ? '&' + search.slice(1) : '') + hash;
+}
+
+export class ErrorOverlay extends HTMLElement {}
+`);
+    });
+
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: false,
+        ws: false,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
