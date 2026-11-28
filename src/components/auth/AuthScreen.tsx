@@ -324,7 +324,7 @@ export const AuthScreen: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <img
-              src="/pwa-192x192.png"
+              src="./pwa-192x192.png"
               alt="أيقونة منصة الأستاذة تبارك الزيرجاوي"
               className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl border border-purple-400/50 shadow-[0_0_24px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
             />
