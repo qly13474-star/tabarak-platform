@@ -71,6 +71,8 @@ import {
   ActiveAppMode,
   IS_PREVIEW_MODE,
   IS_STRICT_STUDENT_BUILD,
+  USE_BACKEND_API,
+  USE_FIREBASE_CLIENT_DIRECT,
   resolveActiveAppModeFromLocation,
 } from '../config/appMode';
 import {
@@ -788,8 +790,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return { success: true };
     };
 
-    // 1) Direct Server-Verified Super Admin Login (exclusively on /admin or VITE_APP_MODE=admin)
-    if (activeAppMode === 'admin' && !IS_STRICT_STUDENT_BUILD) {
+    // 1) Optional Server-Verified Super Admin Login (only when a backend API is explicitly enabled)
+    if (USE_BACKEND_API && activeAppMode === 'admin' && !IS_STRICT_STUDENT_BUILD) {
       const serverAdminRes = await signInSuperAdminViaServer({
         identifier: cleanInput,
         password: password.trim(),
@@ -799,8 +801,8 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
 
-    // 2) Real Firebase Authentication & Cloud Firestore Hydration
-    if (isFirebaseLiveConfigured()) {
+    // 2) Direct Firebase Client SDK Authentication & Cloud Firestore Hydration (Primary path on GitHub Pages)
+    if (USE_FIREBASE_CLIENT_DIRECT && isFirebaseLiveConfigured()) {
       let normalizedIdentifier = cleanInput;
       if (activeAppMode === 'student') {
         const phoneCheck = validateIraqiPhone(cleanInput);

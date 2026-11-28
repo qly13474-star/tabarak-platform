@@ -24,6 +24,14 @@ export const IS_STRICT_STUDENT_BUILD = ENV_APP_MODE === 'student';
 export const IS_STRICT_ADMIN_BUILD = ENV_APP_MODE === 'admin';
 export const IS_PREVIEW_MODE = false;
 
+/**
+ * Direct Firebase Client SDK mode for GitHub Pages & static deployments:
+ * Authentication and Cloud Firestore run 100% directly through the Firebase JS SDK
+ * without attempting any `/api/*` backend calls.
+ */
+export const USE_FIREBASE_CLIENT_DIRECT = true;
+export const USE_BACKEND_API = false;
+
 export function isSecretAdminRouteActive(): boolean {
   if (IS_STRICT_STUDENT_BUILD) return false;
   if (IS_STRICT_ADMIN_BUILD) return true;

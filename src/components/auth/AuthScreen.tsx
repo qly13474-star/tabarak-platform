@@ -232,7 +232,7 @@ export const AuthScreen: React.FC = () => {
                     className="mb-5 flex items-start gap-2.5 rounded-xl bg-rose-500/15 border border-rose-400/40 px-4 py-3 text-sm text-rose-200"
                   >
                     <AlertTriangle className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />
-                    <span>{error}</span>
+                    <span className="whitespace-pre-line break-words leading-relaxed">{error}</span>
                   </div>
                 )}
 
@@ -512,7 +512,7 @@ export const AuthScreen: React.FC = () => {
                     className="mb-4 flex items-start gap-2.5 rounded-xl bg-rose-500/15 border border-rose-400/40 px-4 py-3 text-xs sm:text-sm text-rose-200"
                   >
                     <AlertTriangle className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />
-                    <span>{error}</span>
+                    <span className="whitespace-pre-line break-words leading-relaxed">{error}</span>
                   </div>
                 )}
 

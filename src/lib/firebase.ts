@@ -53,6 +53,7 @@ import {
   WeeklyLiveSlot,
 } from '../types';
 import { formatCurrentTimeHHMM } from '../services/livekit';
+import { USE_BACKEND_API } from '../config/appMode';
 
 export const firebaseConfig = {
   apiKey: 'AIzaSyCtHwPx2K5DaR-QQsxol_uIYpM9w0dPjvg',
@@ -239,7 +240,7 @@ function stripUndefinedDeep<T>(value: T): T {
 export function mapUserDoc(row: DbRecord, fallbackId = ''): UserProfile {
   return {
     id: asString(row.id, fallbackId),
-    fullName: asString(row.fullName ?? row.full_name),
+    fullName: asString(row.fullName ?? row.name ?? row.full_name),
     phone: asString(row.phone),
     username: asOptionalString(row.username),
     parentPhone: asOptionalString(row.parentPhone ?? row.parent_phone),
@@ -251,7 +252,7 @@ export function mapUserDoc(row: DbRecord, fallbackId = ''): UserProfile {
       ? row.permissions.filter((p): p is AdminPermissionKey => typeof p === 'string')
       : undefined,
     track: asString(row.track, 'intermediate'),
-    subStage: asString(row.subStage ?? row.sub_stage, 'عام'),
+    subStage: asString(row.subStage ?? row.stage ?? row.sub_stage, 'عام'),
     branch: asOptionalString(row.branch),
     department: asOptionalString(row.department),
     deviceId:
@@ -271,12 +272,15 @@ export function mapUserDoc(row: DbRecord, fallbackId = ''): UserProfile {
 }
 
 export function mapUserToFirestoreDoc(user: UserProfile, authUid?: string): DbRecord {
+  const cleanPhone = normalizeAuthIdentifier(user.phone);
   const payload: DbRecord = {
     id: user.id,
+    name: user.fullName,
     fullName: user.fullName,
-    phone: user.phone,
+    phone: cleanPhone,
     username: user.username ?? null,
-    parentPhone: user.parentPhone ?? null,
+    parentPhone: user.parentPhone ? normalizeAuthIdentifier(user.parentPhone) : null,
+    stage: user.subStage,
     role: user.role,
     isSuperAdmin: Boolean(user.isSuperAdmin),
     adminRoleTitle: user.adminRoleTitle ?? null,
@@ -413,11 +417,30 @@ export interface FirebaseLoginResponse {
   };
 }
 
-function getFirebaseAuthErrorCode(err: unknown): string {
-  if (err && typeof err === 'object' && 'code' in err && typeof err.code === 'string') {
-    return err.code;
-  }
-  return '';
+function extractFirebaseErrorInfo(err: unknown): { code: string; message: string; detail: string } {
+  const code =
+    err && typeof err === 'object' && 'code' in err && typeof err.code === 'string'
+      ? err.code
+      : 'unknown';
+  const message =
+    err instanceof Error
+      ? err.message
+      : err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+        ? err.message
+        : String(err ?? 'Unknown Firebase error');
+  const detail = code && code !== 'unknown' ? `[${code}] ${message}` : `[${message}]`;
+  return { code, message, detail };
+}
+
+function formatArabicFirebaseError(arabicMessage: string, err: unknown): string {
+  const { detail } = extractFirebaseErrorInfo(err);
+  return `${arabicMessage}\n${detail}`;
+}
+
+function isSuperAdminAuthEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const lower = email.trim().toLowerCase();
+  return lower === '07848333046@tabarak.edu.iq' || lower === 'tabarak@tabarak.edu.iq';
 }
 
 export async function signInWithPhonePassword(params: {
@@ -427,14 +450,15 @@ export async function signInWithPhonePassword(params: {
   strictStudentOnly?: boolean;
   deviceId: string;
 }): Promise<FirebaseLoginResponse> {
-  const cleanIdentifier = params.identifier.trim();
+  const cleanIdentifier = normalizeAuthIdentifier(params.identifier);
   const isAdminMode = params.mode === 'admin';
   const candidateEmails = buildCandidateAuthEmails(cleanIdentifier);
 
   let authUser: FirebaseAuthUser | null = null;
-  let lastErrorCode = '';
+  let primaryErr: unknown = null;
 
-  for (const email of candidateEmails) {
+  for (let i = 0; i < candidateEmails.length; i++) {
+    const email = candidateEmails[i];
     try {
       const cred = await signInWithEmailAndPassword(firebaseAuth, email, params.password);
       if (cred.user) {
@@ -442,23 +466,84 @@ export async function signInWithPhonePassword(params: {
         break;
       }
     } catch (err) {
-      lastErrorCode = getFirebaseAuthErrorCode(err);
-      // If wrong password or too many requests, no need to continue trying legacy email formats
-      if (lastErrorCode === 'auth/too-many-requests') {
+      if (i === 0) {
+        primaryErr = err;
+      }
+      const { code } = extractFirebaseErrorInfo(err);
+
+      // Stop immediately on definitive configuration/network/rate-limit errors so the exact Firebase reason is shown
+      if (code === 'auth/too-many-requests') {
         return {
           success: false,
-          error: 'تم تجاوز عدد محاولات تسجيل الدخول. يرجى الانتظار قليلاً ثم إعادة المحاولة.',
+          error: formatArabicFirebaseError(
+            'تم تجاوز عدد محاولات تسجيل الدخول. يرجى الانتظار قليلاً ثم إعادة المحاولة.',
+            err
+          ),
+        };
+      }
+      if (code === 'auth/operation-not-allowed') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError(
+            'مزود تسجيل الدخول (Email/Password) غير مفعّل في Firebase Authentication.',
+            err
+          ),
+        };
+      }
+      if (code === 'auth/api-key-not-valid' || code === 'auth/invalid-api-key') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError(
+            'مفتاح Firebase API غير صالح أو مقيد.',
+            err
+          ),
+        };
+      }
+      if (code === 'auth/unauthorized-domain') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError(
+            'هذا النطاق غير مضاف في Authorized domains داخل Firebase Authentication.',
+            err
+          ),
+        };
+      }
+      if (code === 'auth/network-request-failed') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError(
+            'تعذر الاتصال بخوادم Firebase. يرجى التحقق من اتصال الإنترنت.',
+            err
+          ),
+        };
+      }
+      if (code === 'auth/user-disabled') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError(
+            'تم تعطيل هذا الحساب في Firebase Authentication.',
+            err
+          ),
+        };
+      }
+
+      // Only try legacy domain fallbacks when user-not-found / invalid-credential
+      if (code !== 'auth/user-not-found' && code !== 'auth/invalid-credential') {
+        return {
+          success: false,
+          error: formatArabicFirebaseError('تعذر تسجيل الدخول عبر Firebase.', err),
         };
       }
     }
   }
 
   if (!authUser) {
+    const baseArabic = isAdminMode
+      ? 'بيانات الدخول الإدارية غير صحيحة. تحققي من رقم الهاتف/اسم المستخدم وكلمة المرور.'
+      : 'رقم الهاتف أو كلمة المرور غير صحيحة.';
     return {
       success: false,
-      error: isAdminMode
-        ? 'بيانات الدخول الإدارية غير صحيحة. تحققي من اسم المستخدم/الهاتف وكلمة المرور.'
-        : 'رقم الهاتف أو كلمة المرور غير صحيحة.',
+      error: primaryErr ? formatArabicFirebaseError(baseArabic, primaryErr) : baseArabic,
     };
   }
 
@@ -468,6 +553,7 @@ export async function signInWithPhonePassword(params: {
   // Fetch matching profile from Firestore `users/{uid}`
   let profileData: DbRecord | null = null;
   let resolvedDocId = authUserId;
+  let firestoreReadError: unknown = null;
   const digitsOnly = cleanIdentifier.replace(/\D/g, '');
 
   try {
@@ -477,10 +563,12 @@ export async function signInWithPhonePassword(params: {
       resolvedDocId = directSnap.id;
     }
   } catch (err) {
+    firestoreReadError = err;
     logFirestoreErrorNonFatal(err, OperationType.GET, `users/${authUserId}`);
   }
 
-  if (!profileData && digitsOnly) {
+  // Only attempt phone query lookup for admin accounts (Firestore rules restrict `users` list to admins)
+  if (!profileData && isAdminMode && digitsOnly) {
     try {
       const byPhoneSnap = await getDocs(
         query(collection(firestoreDb, 'users'), where('phone', '==', digitsOnly), limit(1))
@@ -495,11 +583,61 @@ export async function signInWithPhonePassword(params: {
     }
   }
 
+  // If Firestore read itself failed with permission-denied or network error, surface the exact Firebase error
+  if (!profileData && firestoreReadError) {
+    await signOut(firebaseAuth);
+    return {
+      success: false,
+      error: formatArabicFirebaseError(
+        'تم التحقق من كلمة المرور في Firebase Auth ولكن تعذر قراءة ملف المستخدم من Cloud Firestore.',
+        firestoreReadError
+      ),
+    };
+  }
+
+  // Auto-bootstrap Super Admin profile in Firestore on first direct Firebase Auth sign-in
+  if (!profileData && isAdminMode && isSuperAdminAuthEmail(authUser.email)) {
+    const bootstrappedAdmin: UserProfile = {
+      id: authUserId,
+      fullName: 'الأستاذة تبارك الزيرجاوي',
+      phone: digitsOnly || '07848333046',
+      username: 'tabarak',
+      password: '',
+      role: 'admin',
+      isSuperAdmin: true,
+      adminRoleTitle: 'السوبر أدمن — صاحبة المنصة',
+      permissions: [],
+      track: 'vocational',
+      subStage: 'إدارة المنصة',
+      deviceId: null,
+      isActive: true,
+      enrolledCourseIds: [],
+      unlockedLessonIds: [],
+      createdAt: new Date().toISOString().slice(0, 10),
+      lastLoginAt: `اليوم ${formatCurrentTimeHHMM()}`,
+    };
+    try {
+      const docPayload = mapUserToFirestoreDoc(bootstrappedAdmin, authUserId);
+      await setDoc(doc(firestoreDb, 'users', authUserId), docPayload, { merge: true });
+      profileData = docPayload;
+      resolvedDocId = authUserId;
+    } catch (err) {
+      await signOut(firebaseAuth);
+      return {
+        success: false,
+        error: formatArabicFirebaseError(
+          'تم التحقق من حساب السوبر أدمن ولكن تعذر إنشاء ملف الإدارة في Cloud Firestore.',
+          err
+        ),
+      };
+    }
+  }
+
   if (!profileData) {
     await signOut(firebaseAuth);
     return {
       success: false,
-      error: 'تم التحقق من الحساب ولكن لم يُعثر على ملف المستخدم في Firestore.',
+      error: `تم التحقق من الحساب في Firebase Auth ولكن لم يُعثر على مستند المستخدم (users/${authUserId}) في Cloud Firestore.`,
     };
   }
 
@@ -595,35 +733,72 @@ export async function registerStudentInFirebase(params: {
   user: UserProfile;
   password: string;
 }): Promise<{ success: boolean; user?: UserProfile; accessToken?: string; error?: string }> {
-  const email = buildSyntheticAuthEmail(params.user.phone);
+  const cleanPhone = normalizeAuthIdentifier(params.user.phone).replace(/\D/g, '');
+  const email = `${cleanPhone}@tabarak.edu.iq`;
 
   let authUser: FirebaseAuthUser;
   try {
     const cred = await createUserWithEmailAndPassword(firebaseAuth, email, params.password);
     authUser = cred.user;
   } catch (err) {
-    const code = getFirebaseAuthErrorCode(err);
+    const { code } = extractFirebaseErrorInfo(err);
     if (code === 'auth/email-already-in-use') {
       return {
         success: false,
-        error: 'رقم الهاتف مسجّل مسبقاً في المنصة. يمكنك تسجيل الدخول مباشرة.',
+        error: formatArabicFirebaseError(
+          'رقم الهاتف مسجّل مسبقاً في المنصة. يمكنك تسجيل الدخول مباشرة.',
+          err
+        ),
       };
     }
     if (code === 'auth/weak-password') {
       return {
         success: false,
-        error: 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور من 6 أحرف أو أرقام على الأقل.',
+        error: formatArabicFirebaseError(
+          'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور من 6 أحرف أو أرقام على الأقل.',
+          err
+        ),
       };
     }
     if (code === 'auth/operation-not-allowed') {
       return {
         success: false,
-        error: 'يرجى تفعيل مزود البريد وكلمة المرور (Email/Password) من لوحة Firebase Authentication.',
+        error: formatArabicFirebaseError(
+          'يرجى تفعيل مزود البريد وكلمة المرور (Email/Password) من لوحة Firebase Authentication.',
+          err
+        ),
+      };
+    }
+    if (code === 'auth/unauthorized-domain') {
+      return {
+        success: false,
+        error: formatArabicFirebaseError(
+          'هذا النطاق غير مضاف في Authorized domains داخل Firebase Authentication.',
+          err
+        ),
+      };
+    }
+    if (code === 'auth/api-key-not-valid' || code === 'auth/invalid-api-key') {
+      return {
+        success: false,
+        error: formatArabicFirebaseError(
+          'مفتاح Firebase API غير صالح أو مقيد.',
+          err
+        ),
+      };
+    }
+    if (code === 'auth/network-request-failed') {
+      return {
+        success: false,
+        error: formatArabicFirebaseError(
+          'تعذر الاتصال بخوادم Firebase. يرجى التحقق من اتصال الإنترنت.',
+          err
+        ),
       };
     }
     return {
       success: false,
-      error: 'تعذر إنشاء الحساب في Firebase. يرجى المحاولة مجدداً.',
+      error: formatArabicFirebaseError('تعذر إنشاء الحساب في Firebase.', err),
     };
   }
 
@@ -632,8 +807,10 @@ export async function registerStudentInFirebase(params: {
   const profileToInsert: UserProfile = {
     ...params.user,
     id: authUid,
+    phone: cleanPhone,
     role: 'student',
     isSuperAdmin: false,
+    isActive: true,
     password: '',
   };
 
@@ -646,12 +823,15 @@ export async function registerStudentInFirebase(params: {
     logFirestoreErrorNonFatal(err, OperationType.CREATE, `users/${authUid}`);
     return {
       success: false,
-      error: 'تم إنشاء الحساب ولكن تعذر حفظ بيانات الطالب في Firestore.',
+      error: formatArabicFirebaseError(
+        'تم إنشاء الحساب في Firebase Auth ولكن تعذر حفظ بيانات الطالب في Cloud Firestore (تحقق من قواعد Firestore Rules).',
+        err
+      ),
     };
   }
 
   if (profileToInsert.deviceId) {
-    await syncDeviceLockToFirestore(authUid, profileToInsert.deviceId, profileToInsert.phone);
+    await syncDeviceLockToFirestore(authUid, profileToInsert.deviceId, cleanPhone);
   }
 
   return {
@@ -665,6 +845,10 @@ export async function signInSuperAdminViaServer(params: {
   identifier: string;
   password: string;
 }): Promise<{ success: boolean; user?: UserProfile; accessToken?: string; error?: string }> {
+  if (!USE_BACKEND_API) {
+    return { success: false };
+  }
+
   try {
     const res = await fetch('/api/auth/super-admin', {
       method: 'POST',
@@ -717,7 +901,7 @@ export async function verifySuperAdminPinOnServer(
   const cleanPin = pin.trim();
   if (!cleanPin) return false;
 
-  // 1. Primary verification: Firebase Auth re-authentication against the active signed-in admin
+  // 1. Primary verification: Direct Firebase Client SDK re-authentication against the active signed-in admin
   const activeAuthUser = firebaseAuth.currentUser;
   if (activeAuthUser?.email) {
     try {
@@ -725,31 +909,11 @@ export async function verifySuperAdminPinOnServer(
       await reauthenticateWithCredential(activeAuthUser, credential);
       return true;
     } catch {
-      // Fall through to server-side scrypt check (covers server-token Super Admin session)
+      // Fall through to direct signIn check below
     }
   }
 
-  // 2. Server-side constant-time scrypt check with Bearer authentication
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  try {
-    const res = await fetch('/api/auth/verify-pin', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ pin: cleanPin }),
-    });
-    if (res.ok) {
-      const data = (await res.json()) as { valid?: boolean };
-      if (data.valid) return true;
-    }
-  } catch {
-    // Fallback below when hosted statically without Express server.ts
-  }
-
-  // 3. Static hosting fallback: verify password directly via Firebase Auth for the active Super Admin
+  // 2. Direct Firebase Client SDK verification for the active admin identifier (works on GitHub Pages with zero backend)
   if (adminIdentifier) {
     for (const email of buildCandidateAuthEmails(adminIdentifier)) {
       try {
@@ -758,6 +922,27 @@ export async function verifySuperAdminPinOnServer(
       } catch {
         // Try next candidate email
       }
+    }
+  }
+
+  // 3. Optional backend server verification only when USE_BACKEND_API is explicitly enabled
+  if (USE_BACKEND_API) {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    try {
+      const res = await fetch('/api/auth/verify-pin', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ pin: cleanPin }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { valid?: boolean };
+        if (data.valid) return true;
+      }
+    } catch {
+      // Ignore network error
     }
   }
 

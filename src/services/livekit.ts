@@ -18,6 +18,7 @@ import {
   RemoteTrackPublication,
 } from 'livekit-client';
 import { LiveChatMessage, LiveParticipant, LiveSession, TrackId } from '../types';
+import { USE_BACKEND_API } from '../config/appMode';
 
 function readCleanViteEnv(value: string | undefined): string {
   const trimmed = (value || '').trim();
@@ -46,6 +47,9 @@ export async function checkLiveKitServerStatus(): Promise<{
   livekitConfigured: boolean;
   firebaseConfigured: boolean;
 }> {
+  if (!USE_BACKEND_API && LIVEKIT_CONFIG.tokenEndpoint.startsWith('/api/')) {
+    return { livekitConfigured: false, firebaseConfigured: true };
+  }
   try {
     const res = await fetch('/api/livekit/status', { method: 'GET' });
     if (!res.ok) {
