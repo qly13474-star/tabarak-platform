@@ -1,0 +1,19 @@
+name: k6 Load Test (200 Concurrent Users)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  k6-load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 load test
+        uses: grafana/run-k6-action@v1
+        with:
+          path: tests/load-test.js
