@@ -178,7 +178,7 @@ export const AuthScreen: React.FC = () => {
             <aside className="lg:col-span-6 space-y-6">
               <div className="flex items-center gap-3.5">
                 <img
-                  src="/pwa-192x192.png"
+                  src="./pwa-192x192.png"
                   alt="منصة الأستاذة تبارك الزيرجاوي"
                   className="h-14 w-14 rounded-2xl border border-purple-400/50 shadow-[0_0_28px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
                 />
