@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import logoImg from '../../assets/images/tabarak_alzirjawi_icon_1795817962070.jpg';
 
 interface PWAInstallButtonProps {
   /** Compact header pill vs prominent glowing CTA button */
@@ -103,7 +104,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             <div className="relative px-5 pt-5 pb-4 border-b border-purple-500/20 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <img
-                  src="/pwa-192x192.png"
+                  src={logoImg}
                   alt="أيقونة تطبيق الأستاذة تبارك الزيرجاوي"
                   className="h-12 w-12 rounded-2xl border border-purple-400/50 shadow-[0_0_20px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
                 />

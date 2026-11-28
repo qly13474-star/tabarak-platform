@@ -67,6 +67,7 @@ import { StudentTeacherCVView } from './StudentTeacherCVView';
 import { StudentComplaintsView } from './StudentComplaintsView';
 import { StudentInquiriesView } from './StudentInquiriesView';
 import { StudentScheduleView } from './StudentScheduleView';
+import logoImg from '../../assets/images/tabarak_alzirjawi_icon_1795817962070.jpg';
 
 type StudentTab =
   | 'home'
@@ -561,7 +562,7 @@ export const StudentShell: React.FC = () => {
             className="flex items-center gap-2.5 text-right min-w-0 flex-1 lg:flex-initial cursor-pointer"
           >
             <img
-              src="/pwa-192x192.png"
+              src={logoImg}
               alt="منصة الأستاذة تبارك الزيرجاوي"
               className="h-9 w-9 rounded-xl border border-purple-400/50 shadow-[0_0_16px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
             />

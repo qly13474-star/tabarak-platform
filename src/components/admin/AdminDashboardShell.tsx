@@ -54,6 +54,7 @@ import {
   getPermissionMeta,
 } from '../../utils/adminPermissions';
 import { formatWhatsappCleanNumber } from '../../utils/whatsapp';
+import logoImg from '../../assets/images/tabarak_alzirjawi_icon_1795817962070.jpg';
 
 export const AdminDashboardShell: React.FC = () => {
   const {
@@ -223,7 +224,7 @@ export const AdminDashboardShell: React.FC = () => {
           <div className="flex items-center gap-3">
             {isSuperAdmin ? (
               <img
-                src="/pwa-192x192.png"
+                src={logoImg}
                 alt="منصة الأستاذة تبارك الزيرجاوي"
                 className="h-11 w-11 rounded-2xl border border-purple-400/50 shadow-[0_0_20px_-4px_rgba(168,85,247,0.75)] object-cover shrink-0"
               />
