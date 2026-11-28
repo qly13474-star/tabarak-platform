@@ -35,6 +35,8 @@ export function isSecretAdminRouteActive(): boolean {
   return (
     pathname === SECRET_ADMIN_ROUTE ||
     pathname.startsWith(`${SECRET_ADMIN_ROUTE}/`) ||
+    pathname.endsWith(SECRET_ADMIN_ROUTE) ||
+    pathname.includes(`${SECRET_ADMIN_ROUTE}/`) ||
     hash === `#${SECRET_ADMIN_ROUTE}` ||
     hash.startsWith(`#${SECRET_ADMIN_ROUTE}/`) ||
     hash === '#admin'

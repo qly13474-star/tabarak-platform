@@ -175,7 +175,7 @@ function getFirebaseServerConfig() {
   const projectId = cleanEnvValue(process.env.FIREBASE_PROJECT_ID) || 'tabarak-platform';
   const apiKey =
     cleanEnvValue(process.env.FIREBASE_WEB_API_KEY) ||
-    'AIzaSyCtHwPx2K60aR-QQexoL_uLYpM9w9dFjvg';
+    'AIzaSyCtHwPx2K5DaR-QQsxol_uIYpM9w0dPjvg';
   return {
     projectId,
     apiKey,

@@ -55,12 +55,12 @@ import {
 import { formatCurrentTimeHHMM } from '../services/livekit';
 
 export const firebaseConfig = {
-  apiKey: 'AIzaSyCtHwPx2K60aR-QQexoL_uLYpM9w9dFjvg',
+  apiKey: 'AIzaSyCtHwPx2K5DaR-QQsxol_uIYpM9w0dPjvg',
   authDomain: 'tabarak-platform.firebaseapp.com',
   projectId: 'tabarak-platform',
   storageBucket: 'tabarak-platform.firebasestorage.app',
   messagingSenderId: '316837026458',
-  appId: '1:316837026458:web:a841e7a3281d2f93765d23',
+  appId: '1:316837026458:web:a841e7a3281d2f03765d23',
 };
 
 export const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -161,14 +161,23 @@ void testConnection();
 // Synthetic Email Formatting (Consistent across Registration & Login)
 // ============================================================================
 
+function normalizeAuthIdentifier(identifier: string): string {
+  return identifier
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+}
+
 export function buildSyntheticAuthEmail(identifier: string): string {
-  const cleaned = identifier.trim().toLowerCase().replace(/\s+/g, '');
+  const cleaned = normalizeAuthIdentifier(identifier);
   if (cleaned.includes('@')) return cleaned;
   return `${cleaned}@tabarak.edu.iq`;
 }
 
 function buildCandidateAuthEmails(identifier: string): string[] {
-  const cleaned = identifier.trim().toLowerCase().replace(/\s+/g, '');
+  const cleaned = normalizeAuthIdentifier(identifier);
   if (cleaned.includes('@')) return [cleaned];
   const digits = cleaned.replace(/\D/g, '');
   const base = digits.length >= 9 && /^07\d{9}$/.test(digits) ? digits : cleaned;
