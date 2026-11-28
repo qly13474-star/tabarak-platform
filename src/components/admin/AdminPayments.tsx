@@ -99,7 +99,7 @@ export const AdminPayments: React.FC = () => {
       cardType: cardType.trim() || 'ماستر كارد / سوبر كي',
       cardHolderName: cardHolderName.trim() || 'تبارك الزيرجاوي',
       whatsappNumber: whatsappNumber.replace(/\D/g, '').slice(0, 14) || db.paymentSettings.whatsappNumber,
-      monthlyFeeIqd: Math.max(1000, Number(monthlyFeeIqd) || 50000),
+      monthlyFeeIqd: Math.max(0, Number.isFinite(Number(monthlyFeeIqd)) ? Math.round(Number(monthlyFeeIqd)) : 0),
     });
     showToast('تم حفظ إعدادات الدفع الشهري وتحديثها فوراً لدى جميع الطلاب في التطبيق.');
   };
@@ -398,8 +398,8 @@ export const AdminPayments: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
-                    min={1000}
-                    step={5000}
+                    min={0}
+                    step={1}
                     value={monthlyFeeIqd}
                     onChange={(e) => setMonthlyFeeIqd(Number(e.target.value))}
                     className="flex-1 min-h-[46px] rounded-xl border border-purple-500/25 px-4 font-mono text-base font-extrabold text-white tabular-nums focus:border-purple-400 focus:outline-none"
