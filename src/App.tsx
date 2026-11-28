@@ -6,18 +6,18 @@ import { AdminDashboardShell } from './components/admin/AdminDashboardShell';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 
 const PlatformRouter: React.FC = () => {
-  const { currentUser, activeAppMode } = usePlatform();
+  const { currentUser } = usePlatform();
 
   const renderMainContent = () => {
     if (!currentUser) {
       return <AuthScreen />;
     }
 
-    if (activeAppMode === 'admin' && currentUser.role === 'admin') {
+    if (currentUser.role === 'admin' || currentUser.isSuperAdmin) {
       return <AdminDashboardShell />;
     }
 
-    if (activeAppMode === 'student' && currentUser.role === 'student') {
+    if (currentUser.role === 'student') {
       return <StudentShell />;
     }
 

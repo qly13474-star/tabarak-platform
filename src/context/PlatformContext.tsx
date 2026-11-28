@@ -512,54 +512,76 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => unsub();
   }, [isFirebaseLive]);
 
-  const refreshFromFirestore = useCallback(async () => {
-    if (!isFirebaseLiveConfigured()) return;
-    try {
-      const snapshot = await fetchPlatformSnapshotFromFirestore({
-        role: activeAppMode === 'admin' ? 'admin' : 'student',
-        userId: firebaseAuthUid || currentUserId || undefined,
-      });
-      if (!snapshot) return;
-      setDb((prev) => ({
-        ...prev,
-        users: snapshot.users && snapshot.users.length > 0 ? snapshot.users : prev.users,
-        courses: snapshot.courses && snapshot.courses.length > 0 ? snapshot.courses : prev.courses,
-        storeOrders: snapshot.storeOrders ?? prev.storeOrders,
-        attendanceRecords: snapshot.attendanceRecords ?? prev.attendanceRecords,
-        tracks: snapshot.tracks && snapshot.tracks.length > 0 ? snapshot.tracks : prev.tracks,
-        storeItems:
-          snapshot.storeItems && snapshot.storeItems.length > 0 ? snapshot.storeItems : prev.storeItems,
-        supportWhatsappNumber: snapshot.supportWhatsappNumber || prev.supportWhatsappNumber,
-        weeklySchedule:
-          snapshot.weeklySchedule && snapshot.weeklySchedule.length > 0
-            ? snapshot.weeklySchedule
-            : prev.weeklySchedule,
-        assignments:
-          snapshot.assignments && snapshot.assignments.length > 0
-            ? snapshot.assignments
-            : prev.assignments,
-        activationCodes:
-          snapshot.activationCodes && snapshot.activationCodes.length > 0
-            ? snapshot.activationCodes
-            : prev.activationCodes,
-        complaints:
-          snapshot.complaints && snapshot.complaints.length > 0
-            ? snapshot.complaints
-            : prev.complaints,
-        inquiries:
-          snapshot.inquiries && snapshot.inquiries.length > 0 ? snapshot.inquiries : prev.inquiries,
-      }));
-    } catch {
-      // Keep cached/local state if Firestore network call fails
-    }
-  }, [activeAppMode, currentUserId, firebaseAuthUid]);
+  const refreshFromFirestore = useCallback(
+    async (overrideRole?: 'admin' | 'student') => {
+      if (!isFirebaseLiveConfigured()) return;
+      try {
+        const matchedUser = db.users.find((u) => u.id === (firebaseAuthUid || currentUserId));
+        const isMatchedAdmin = Boolean(
+          matchedUser && (matchedUser.role === 'admin' || matchedUser.isSuperAdmin)
+        );
+        const resolvedRole: 'admin' | 'student' =
+          overrideRole ?? (activeAppMode === 'admin' || isMatchedAdmin ? 'admin' : 'student');
+
+        const snapshot = await fetchPlatformSnapshotFromFirestore({
+          role: resolvedRole,
+          userId: firebaseAuthUid || currentUserId || undefined,
+        });
+        if (!snapshot) return;
+        setDb((prev) => ({
+          ...prev,
+          users: snapshot.users && snapshot.users.length > 0 ? snapshot.users : prev.users,
+          courses: snapshot.courses && snapshot.courses.length > 0 ? snapshot.courses : prev.courses,
+          storeOrders: snapshot.storeOrders ?? prev.storeOrders,
+          attendanceRecords: snapshot.attendanceRecords ?? prev.attendanceRecords,
+          tracks: snapshot.tracks && snapshot.tracks.length > 0 ? snapshot.tracks : prev.tracks,
+          storeItems:
+            snapshot.storeItems && snapshot.storeItems.length > 0
+              ? snapshot.storeItems
+              : prev.storeItems,
+          supportWhatsappNumber: snapshot.supportWhatsappNumber || prev.supportWhatsappNumber,
+          weeklySchedule:
+            snapshot.weeklySchedule && snapshot.weeklySchedule.length > 0
+              ? snapshot.weeklySchedule
+              : prev.weeklySchedule,
+          assignments:
+            snapshot.assignments && snapshot.assignments.length > 0
+              ? snapshot.assignments
+              : prev.assignments,
+          activationCodes:
+            snapshot.activationCodes && snapshot.activationCodes.length > 0
+              ? snapshot.activationCodes
+              : prev.activationCodes,
+          complaints:
+            snapshot.complaints && snapshot.complaints.length > 0
+              ? snapshot.complaints
+              : prev.complaints,
+          inquiries:
+            snapshot.inquiries && snapshot.inquiries.length > 0
+              ? snapshot.inquiries
+              : prev.inquiries,
+        }));
+      } catch {
+        // Keep cached/local state if Firestore network call fails
+      }
+    },
+    [activeAppMode, currentUserId, db.users, firebaseAuthUid]
+  );
+
+  const activeUserRecord = useMemo(
+    () => db.users.find((u) => u.id === currentUserId) ?? null,
+    [db.users, currentUserId]
+  );
 
   // Real-time Cloud Firestore listeners (onSnapshot) for live catalog, orders, attendance, users, & live quiz room
   useEffect(() => {
     if (!isFirebaseLive) return;
+    const isAdminRecord = Boolean(
+      activeUserRecord && (activeUserRecord.role === 'admin' || activeUserRecord.isSuperAdmin)
+    );
     const activeRole =
       firebaseAuthUid && currentUserId
-        ? activeAppMode === 'admin'
+        ? activeAppMode === 'admin' || isAdminRecord
           ? 'admin'
           : 'student'
         : null;
@@ -622,7 +644,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
 
     return () => unsubscribe();
-  }, [isFirebaseLive, firebaseAuthUid, currentUserId, activeAppMode]);
+  }, [isFirebaseLive, firebaseAuthUid, currentUserId, activeAppMode, activeUserRecord]);
 
   const clearSimulatedAnswerTimers = useCallback(() => {
     simTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
@@ -657,10 +679,12 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const currentUser = useMemo(() => {
     const found = db.users.find((u) => u.id === currentUserId) ?? null;
     if (!found) return null;
-    // Enforce strict build-mode isolation: never expose admin user in student mode or student user in admin mode
-    if (activeAppMode === 'student' && found.role !== 'student') return null;
-    if (activeAppMode === 'admin' && found.role !== 'admin') return null;
-    if (found.role === 'admin' && !found.isActive) return null;
+    const isAdminAccount = found.role === 'admin' || Boolean(found.isSuperAdmin);
+    // Strict student-only APK build never exposes admin accounts
+    if (IS_STRICT_STUDENT_BUILD && isAdminAccount) return null;
+    // Dedicated /admin portal does not show student sessions
+    if (activeAppMode === 'admin' && !isAdminAccount) return null;
+    if (isAdminAccount && !found.isActive) return null;
     return found;
   }, [db.users, currentUserId, activeAppMode]);
 
@@ -765,27 +789,31 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Helper to activate a verified admin/super-admin user and open AdminDashboardShell directly
     const activateAdminSession = (adminUser: UserProfile, token?: string | null): AuthResult => {
-      if (IS_STRICT_STUDENT_BUILD || activeAppMode !== 'admin') {
+      if (IS_STRICT_STUDENT_BUILD) {
         return {
           success: false,
           error: 'هذا التطبيق مخصص لحسابات الطلبة فقط.',
         };
       }
+      const normalizedAdmin: UserProfile = {
+        ...adminUser,
+        role: 'admin',
+      };
       setAuthAccessToken(token ?? null);
       setDb((prev) => {
-        const exists = prev.users.some((u) => u.id === adminUser.id);
+        const exists = prev.users.some((u) => u.id === normalizedAdmin.id);
         return {
           ...prev,
           users: exists
-            ? prev.users.map((u) => (u.id === adminUser.id ? { ...u, ...adminUser } : u))
-            : [adminUser, ...prev.users],
+            ? prev.users.map((u) => (u.id === normalizedAdmin.id ? { ...u, ...normalizedAdmin } : u))
+            : [normalizedAdmin, ...prev.users],
         };
       });
       setDeviceLockViolation(null);
       setActiveAppMode('admin');
-      setCurrentUserId(adminUser.id);
+      setCurrentUserId(normalizedAdmin.id);
       if (isFirebaseLiveConfigured()) {
-        void refreshFromFirestore();
+        void refreshFromFirestore('admin');
       }
       return { success: true };
     };
@@ -804,7 +832,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // 2) Direct Firebase Client SDK Authentication & Cloud Firestore Hydration (Primary path on GitHub Pages)
     if (USE_FIREBASE_CLIENT_DIRECT && isFirebaseLiveConfigured()) {
       let normalizedIdentifier = cleanInput;
-      if (activeAppMode === 'student') {
+      if (activeAppMode === 'student' && !cleanInput.includes('@')) {
         const phoneCheck = validateIraqiPhone(cleanInput);
         if (!phoneCheck.valid) {
           return { success: false, error: phoneCheck.error };
@@ -832,7 +860,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       const authenticatedUser = fbResult.user;
-      if (authenticatedUser.role === 'admin') {
+      if (authenticatedUser.role === 'admin' || authenticatedUser.isSuperAdmin) {
         return activateAdminSession(authenticatedUser, fbResult.accessToken);
       }
 
@@ -907,7 +935,7 @@ export const PlatformProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
     }
 
-    if (found.role === 'admin') {
+    if (found.role === 'admin' || found.isSuperAdmin) {
       return activateAdminSession(found, null);
     }
 

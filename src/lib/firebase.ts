@@ -238,6 +238,9 @@ function stripUndefinedDeep<T>(value: T): T {
 }
 
 export function mapUserDoc(row: DbRecord, fallbackId = ''): UserProfile {
+  const isSuper = asBoolean(row.isSuperAdmin ?? row.is_super_admin, false);
+  const resolvedRole: 'admin' | 'student' = row.role === 'admin' || isSuper ? 'admin' : 'student';
+
   return {
     id: asString(row.id, fallbackId),
     fullName: asString(row.fullName ?? row.name ?? row.full_name),
@@ -245,8 +248,8 @@ export function mapUserDoc(row: DbRecord, fallbackId = ''): UserProfile {
     username: asOptionalString(row.username),
     parentPhone: asOptionalString(row.parentPhone ?? row.parent_phone),
     password: '',
-    role: row.role === 'admin' ? 'admin' : 'student',
-    isSuperAdmin: asBoolean(row.isSuperAdmin ?? row.is_super_admin, false),
+    role: resolvedRole,
+    isSuperAdmin: isSuper,
     adminRoleTitle: asOptionalString(row.adminRoleTitle ?? row.admin_role_title),
     permissions: Array.isArray(row.permissions)
       ? row.permissions.filter((p): p is AdminPermissionKey => typeof p === 'string')
@@ -567,8 +570,8 @@ export async function signInWithPhonePassword(params: {
     logFirestoreErrorNonFatal(err, OperationType.GET, `users/${authUserId}`);
   }
 
-  // Only attempt phone query lookup for admin accounts (Firestore rules restrict `users` list to admins)
-  if (!profileData && isAdminMode && digitsOnly) {
+  // Attempt phone query lookup for admin or Super Admin accounts (Firestore rules restrict `users` list to admins)
+  if (!profileData && (isAdminMode || isSuperAdminAuthEmail(authUser.email)) && digitsOnly) {
     try {
       const byPhoneSnap = await getDocs(
         query(collection(firestoreDb, 'users'), where('phone', '==', digitsOnly), limit(1))
@@ -595,8 +598,8 @@ export async function signInWithPhonePassword(params: {
     };
   }
 
-  // Auto-bootstrap Super Admin profile in Firestore on first direct Firebase Auth sign-in
-  if (!profileData && isAdminMode && isSuperAdminAuthEmail(authUser.email)) {
+  // Auto-bootstrap Super Admin profile in Firestore on first direct Firebase Auth sign-in (works from `/` or `/admin`)
+  if (!profileData && !params.strictStudentOnly && isSuperAdminAuthEmail(authUser.email)) {
     const bootstrappedAdmin: UserProfile = {
       id: authUserId,
       fullName: 'الأستاذة تبارك الزيرجاوي',
@@ -642,13 +645,15 @@ export async function signInWithPhonePassword(params: {
   }
 
   const user = mapUserDoc(profileData, resolvedDocId);
+  const isAdminAccount = user.role === 'admin' || Boolean(user.isSuperAdmin);
 
-  // Enforce strict portal isolation
-  if ((params.strictStudentOnly || params.mode === 'student') && user.role !== 'student') {
+  // Enforce strict student-only APK isolation only when explicitly built with VITE_APP_MODE=student
+  // On the web main login screen, admin / superAdmin accounts are automatically routed to Admin Dashboard
+  if (params.strictStudentOnly && isAdminAccount) {
     await signOut(firebaseAuth);
     return { success: false, error: 'هذا التطبيق مخصص لحسابات الطلبة فقط.' };
   }
-  if (params.mode === 'admin' && user.role !== 'admin') {
+  if (params.mode === 'admin' && !isAdminAccount) {
     await signOut(firebaseAuth);
     return { success: false, error: 'هذه البوابة مخصصة لإدارة المنصة والمشرفين المعتمدين فقط.' };
   }
